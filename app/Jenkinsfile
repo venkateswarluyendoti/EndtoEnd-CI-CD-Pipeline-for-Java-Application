@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.8.7'   // Jenkins global tool name
-        jdk 'JDK 17'          // Jenkins global tool name
+        maven 'Maven 3.8.7'
+        jdk 'JDK 17'
     }
 
     environment {
@@ -75,16 +75,26 @@ pipeline {
 
         stage('Deploy with Helm') {
             steps {
-                dir('helm/java-cicd-app') {  // Your Helm chart path
-                    script {
-                        withCredentials([file(credentialsId: 'kubeconfig-id', variable: 'KUBECONFIG')]) {
-                            sh """
-                                # Helm upgrade/install with image tag from Jenkins build
-                                helm upgrade --install java-cicd-app . \
-                                    --set image.repository=$DOCKER_IMAGE \
-                                    --set image.tag=${BUILD_NUMBER} \
-                                    --wait
-                            """
+                script {
+                    // Install Helm if not present
+                    sh '''
+                        if ! command -v helm &> /dev/null; then
+                            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+                        fi
+                        helm version
+                    '''
+
+                    // Use Jenkins secret file credentials for kubeconfig
+                    withCredentials([file(credentialsId: 'kubeconfig-id', variable: 'KUBECONFIG')]) {
+                        dir('helm/java-cicd-app') {
+                            script {
+                                sh """
+                                    helm upgrade --install java-cicd-app . \
+                                        --set image.repository=$DOCKER_IMAGE \
+                                        --set image.tag=${BUILD_NUMBER} \
+                                        --wait
+                                """
+                            }
                         }
                     }
                 }
