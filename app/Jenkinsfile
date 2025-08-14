@@ -23,11 +23,11 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('MySonarQubeServer') {
-                    sh 'mvn clean verify sonar:sonar \
+                    sh '''mvn clean verify sonar:sonar \
   -Dsonar.projectKey=End-to-End-CICD-Pipeline \
   -Dsonar.projectName='End-to-End-CICD-Pipeline' \
   -Dsonar.host.url=http://100.24.58.203:9000 \
-  -Dsonar.token=sqp_dac24bd074e9842655cdb085ef2bf25d3d77c1b9'
+  -Dsonar.token=sqp_dac24bd074e9842655cdb085ef2bf25d3d77c1b9'''
                 }
             }
         }
