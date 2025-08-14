@@ -9,6 +9,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credential ID
         DOCKER_IMAGE = "venkatesh384/java-cicd-app"
+        // Removed KUBE_CONFIG from environment
     }
 
     stages {
@@ -38,7 +39,7 @@ pipeline {
                             mvn clean verify sonar:sonar \
                             -Dsonar.projectKey=End-to-End-CICD-Pipeline \
                             -Dsonar.projectName="End-to-End-CICD-Pipeline" \
-                            -Dsonar.host.url=http://100.24.58.203:9000 \
+                            -Dsonar.host.url=http://44.210.122.242:9000 \
                             -Dsonar.token=sqp_dac24bd074e9842655cdb085ef2bf25d3d77c1b9
                         '''
                     }
@@ -67,6 +68,23 @@ pipeline {
                             echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
                             docker push $DOCKER_IMAGE:${BUILD_NUMBER}
                             docker push $DOCKER_IMAGE:latest
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                dir('k8s') {
+                    script {
+                        sh """
+                            # Use direct kubeconfig path
+                            export KUBECONFIG=/home/ubuntu/.kube/config
+
+                            kubectl apply -f deployment.yaml
+                            kubectl apply -f service.yaml
+                            kubectl rollout status deployment java-cicd-app
                         """
                     }
                 }
