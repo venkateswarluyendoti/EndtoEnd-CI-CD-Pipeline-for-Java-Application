@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven-3.8.7'   // Name configured in Jenkins -> Global Tool Configuration
+        jdk 'JDK-17'          // Name configured in Jenkins -> Global Tool Configuration
+    }
+
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credential ID
         DOCKER_IMAGE = "venkatesh384/java-cicd-app"
@@ -16,6 +21,8 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
+                sh 'mvn --version'
+                sh 'java -version'
                 sh 'mvn clean package -DskipTests'
             }
         }
@@ -23,11 +30,13 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('MySonarQubeServer') {
-                    sh '''mvn clean verify sonar:sonar \
-  -Dsonar.projectKey=End-to-End-CICD-Pipeline \
-  -Dsonar.projectName='End-to-End-CICD-Pipeline' \
-  -Dsonar.host.url=http://100.24.58.203:9000 \
-  -Dsonar.token=sqp_dac24bd074e9842655cdb085ef2bf25d3d77c1b9'''
+                    sh '''
+                        mvn clean verify sonar:sonar \
+                        -Dsonar.projectKey=End-to-End-CICD-Pipeline \
+                        -Dsonar.projectName="End-to-End-CICD-Pipeline" \
+                        -Dsonar.host.url=http://100.24.58.203:9000 \
+                        -Dsonar.token=sqp_dac24bd074e9842655cdb085ef2bf25d3d77c1b9
+                    '''
                 }
             }
         }
