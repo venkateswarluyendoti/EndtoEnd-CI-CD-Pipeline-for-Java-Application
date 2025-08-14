@@ -75,27 +75,23 @@ pipeline {
 
         stage('Deploy with Helm') {
             steps {
-                script {
-                    // Install Helm if not present
-                    sh '''
-                        if ! command -v helm &> /dev/null; then
-                            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-                        fi
-                        helm version
-                    '''
+                // Ensure Helm is installed
+                sh '''
+                    if ! command -v helm &> /dev/null; then
+                        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+                    fi
+                    helm version
+                '''
 
-                    // Use Jenkins secret file credentials for kubeconfig
-                    withCredentials([file(credentialsId: 'kubeconfig-id', variable: 'KUBECONFIG')]) {
-                        dir('helm/java-cicd-app') {
-                            script {
-                                sh """
-                                    helm upgrade --install java-cicd-app . \
-                                        --set image.repository=$DOCKER_IMAGE \
-                                        --set image.tag=${BUILD_NUMBER} \
-                                        --wait
-                                """
-                            }
-                        }
+                // Deploy using Helm with kubeconfig credentials
+                withCredentials([file(credentialsId: 'kubeconfig-id', variable: 'KUBECONFIG')]) {
+                    dir('helm/java-cicd-app') {
+                        sh """
+                            helm upgrade --install java-cicd-app . \
+                                --set image.repository=$DOCKER_IMAGE \
+                                --set image.tag=${BUILD_NUMBER} \
+                                --wait
+                        """
                     }
                 }
             }
