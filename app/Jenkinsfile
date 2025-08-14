@@ -75,17 +75,19 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    withEnv(["KUBECONFIG=/home/ubuntu/.kube/config"]) {
-                        // Check if manifests exist before applying
-                        if (fileExists('k8s/deployment.yaml') && fileExists('k8s/service.yaml')) {
-                            sh '''
-                                kubectl apply -f k8s/deployment.yaml --validate=false
-                                kubectl rollout status deployment java-cicd-app
-                                kubectl apply -f k8s/service.yaml --validate=false
-                            '''
-                        } else {
-                            echo "Kubernetes manifests not found in 'k8s' folder. Skipping deployment."
+                // Use Jenkins Secret File credentials for kubeconfig
+                withCredentials([file(credentialsId: 'kubeconfig-id', variable: 'KUBECONFIG')]) {
+                    dir('k8s') {
+                        script {
+                            if (fileExists('deployment.yaml') && fileExists('service.yaml')) {
+                                sh '''
+                                    kubectl apply -f deployment.yaml --validate=false
+                                    kubectl rollout status deployment java-cicd-app
+                                    kubectl apply -f service.yaml --validate=false
+                                '''
+                            } else {
+                                echo "Kubernetes manifests not found in 'k8s' folder. Skipping deployment."
+                            }
                         }
                     }
                 }
