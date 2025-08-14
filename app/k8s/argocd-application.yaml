@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: java-cicd
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/venky2350/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git
+    targetRevision: master
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
