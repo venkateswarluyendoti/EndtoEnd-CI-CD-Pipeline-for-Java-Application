@@ -12,6 +12,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: 'master',
@@ -31,25 +32,29 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('MySonarQubeServer') {
-                    sh '''
-                        mvn clean verify sonar:sonar \
-                        -Dsonar.projectKey=End-to-End-CICD-Pipeline \
-                        -Dsonar.projectName="End-to-End-CICD-Pipeline" \
-                        -Dsonar.host.url=http://100.24.58.203:9000 \
-                        -Dsonar.token=sqp_dac24bd074e9842655cdb085ef2bf25d3d77c1b9
-                    '''
+                dir('app') {
+                    withSonarQubeEnv('MySonarQubeServer') {
+                        sh '''
+                            mvn clean verify sonar:sonar \
+                            -Dsonar.projectKey=End-to-End-CICD-Pipeline \
+                            -Dsonar.projectName="End-to-End-CICD-Pipeline" \
+                            -Dsonar.host.url=http://100.24.58.203:9000 \
+                            -Dsonar.token=sqp_dac24bd074e9842655cdb085ef2bf25d3d77c1b9
+                        '''
+                    }
                 }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh """
-                        docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile .
-                        docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
-                    """
+                dir('app') {
+                    script {
+                        sh """
+                            docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile .
+                            docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
+                        """
+                    }
                 }
             }
         }
