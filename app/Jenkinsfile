@@ -73,21 +73,18 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy with Helm') {
             steps {
-                // Use Jenkins Secret File credentials for kubeconfig
-                withCredentials([file(credentialsId: 'kubeconfig-id', variable: 'KUBECONFIG')]) {
-                    dir('k8s') {
-                        script {
-                            if (fileExists('deployment.yaml') && fileExists('service.yaml')) {
-                                sh '''
-                                    kubectl apply -f deployment.yaml --validate=false
-                                    kubectl rollout status deployment java-cicd-app
-                                    kubectl apply -f service.yaml --validate=false
-                                '''
-                            } else {
-                                echo "Kubernetes manifests not found in 'k8s' folder. Skipping deployment."
-                            }
+                dir('helm/java-cicd-app') {  // Your Helm chart path
+                    script {
+                        withCredentials([file(credentialsId: 'kubeconfig-id', variable: 'KUBECONFIG')]) {
+                            sh """
+                                # Helm upgrade/install with image tag from Jenkins build
+                                helm upgrade --install java-cicd-app . \
+                                    --set image.repository=$DOCKER_IMAGE \
+                                    --set image.tag=${BUILD_NUMBER} \
+                                    --wait
+                            """
                         }
                     }
                 }
