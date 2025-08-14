@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credential ID
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
         DOCKER_IMAGE = "venkatesh384/java-cicd-app"
     }
 
@@ -36,10 +36,10 @@ pipeline {
                     withSonarQubeEnv('MySonarQubeServer') {
                         sh '''
                             mvn clean verify sonar:sonar \
-                            -Dsonar.projectKey=End-to-End-CICD-Pipeline \
-                            -Dsonar.projectName="End-to-End-CICD-Pipeline" \
-                            -Dsonar.host.url=http://44.210.122.242:9000 \
-                            -Dsonar.token=sqp_dac24bd074e9842655cdb085ef2bf25d3d77c1b9
+                                -Dsonar.projectKey=End-to-End-CICD-Pipeline \
+                                -Dsonar.projectName="End-to-End-CICD-Pipeline" \
+                                -Dsonar.host.url=http://44.210.122.242:9000 \
+                                -Dsonar.token=sqp_dac24bd074e9842655cdb085ef2bf25d3d77c1b9
                         '''
                     }
                 }
@@ -75,34 +75,23 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                dir('k8s') {
-                    script {
-                        // List files for verification
-                        sh 'ls -l'
-
-                        // Set kubeconfig
-                        withEnv(["KUBECONFIG=/home/ubuntu/.kube/config"]) {
+                script {
+                    withEnv(["KUBECONFIG=/home/ubuntu/.kube/config"]) {
+                        // Check if manifests exist before applying
+                        if (fileExists('k8s/deployment.yaml') && fileExists('k8s/service.yaml')) {
                             sh '''
-                                if [ -f deployment.yaml ]; then
-                                    kubectl apply -f deployment.yaml
-                                    kubectl rollout status deployment java-cicd-app
-                                else
-                                    echo "deployment.yaml not found!"
-                                    exit 1
-                                fi
-
-                                if [ -f service.yaml ]; then
-                                    kubectl apply -f service.yaml
-                                else
-                                    echo "service.yaml not found!"
-                                    exit 1
-                                fi
+                                kubectl apply -f k8s/deployment.yaml
+                                kubectl rollout status deployment java-cicd-app
+                                kubectl apply -f k8s/service.yaml
                             '''
+                        } else {
+                            echo "Kubernetes manifests not found in 'k8s' folder. Skipping deployment."
                         }
                     }
                 }
             }
         }
+
     }
 
     post {
