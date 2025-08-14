@@ -80,9 +80,9 @@ pipeline {
                         // Check if manifests exist before applying
                         if (fileExists('k8s/deployment.yaml') && fileExists('k8s/service.yaml')) {
                             sh '''
-                                kubectl apply -f k8s/deployment.yaml
+                                kubectl apply -f k8s/deployment.yaml --validate=false
                                 kubectl rollout status deployment java-cicd-app
-                                kubectl apply -f k8s/service.yaml
+                                kubectl apply -f k8s/service.yaml --validate=false
                             '''
                         } else {
                             echo "Kubernetes manifests not found in 'k8s' folder. Skipping deployment."
