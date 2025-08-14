@@ -1,0 +1,13 @@
+replicaCount: 1
+
+image:
+  repository: venkatesh384/java-cicd-app
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30007
+
+resources: {}

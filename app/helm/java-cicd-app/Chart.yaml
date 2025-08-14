@@ -1,0 +1,6 @@
+apiVersion: v2
+name: java-cicd-app
+description: Helm chart for Java CI/CD App
+type: application
+version: 0.1.0
+appVersion: "1.0"
