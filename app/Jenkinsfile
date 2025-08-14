@@ -2,14 +2,13 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.8.7'   // Name configured in Jenkins -> Global Tool Configuration
-        jdk 'JDK 17'          // Name configured in Jenkins -> Global Tool Configuration
+        maven 'Maven 3.8.7'   // Jenkins global tool name
+        jdk 'JDK 17'          // Jenkins global tool name
     }
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credential ID
         DOCKER_IMAGE = "venkatesh384/java-cicd-app"
-        // Removed KUBE_CONFIG from environment
     }
 
     stages {
@@ -78,14 +77,28 @@ pipeline {
             steps {
                 dir('k8s') {
                     script {
-                        sh """
-                            # Use direct kubeconfig path
-                            export KUBECONFIG=/home/ubuntu/.kube/config
+                        // List files for verification
+                        sh 'ls -l'
 
-                            kubectl apply -f deployment.yaml
-                            kubectl apply -f service.yaml
-                            kubectl rollout status deployment java-cicd-app
-                        """
+                        // Set kubeconfig
+                        withEnv(["KUBECONFIG=/home/ubuntu/.kube/config"]) {
+                            sh '''
+                                if [ -f deployment.yaml ]; then
+                                    kubectl apply -f deployment.yaml
+                                    kubectl rollout status deployment java-cicd-app
+                                else
+                                    echo "deployment.yaml not found!"
+                                    exit 1
+                                fi
+
+                                if [ -f service.yaml ]; then
+                                    kubectl apply -f service.yaml
+                                else
+                                    echo "service.yaml not found!"
+                                    exit 1
+                                fi
+                            '''
+                        }
                     }
                 }
             }
