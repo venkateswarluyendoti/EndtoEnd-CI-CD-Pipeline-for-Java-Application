@@ -9,6 +9,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
         DOCKER_IMAGE = "venkatesh384/java-cicd-app"
+        KUBE_CONFIG = credentials('kubeconfig-cred') // Kubernetes kubeconfig file
     }
 
     stages {
@@ -36,10 +37,10 @@ pipeline {
                     withSonarQubeEnv('MySonarQubeServer') {
                         sh '''
                             mvn clean verify sonar:sonar \
-                                -Dsonar.projectKey=End-to-End-CICD-Pipeline \
-                                -Dsonar.projectName="End-to-End-CICD-Pipeline" \
-                                -Dsonar.host.url=http://44.210.122.242:9000 \
-                                -Dsonar.token=sqp_dac24bd074e9842655cdb085ef2bf25d3d77c1b9
+                            -Dsonar.projectKey=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
+                            -Dsonar.projectName='EndtoEnd-CI-CD-Pipeline-for-Java-Application' \
+                            -Dsonar.host.url=http://18.206.244.141:9000 \
+                            -Dsonar.token=sqp_cf45f4d0938cf718b691857f51118aeca5ea818a
                         '''
                     }
                 }
@@ -73,30 +74,30 @@ pipeline {
             }
         }
 
-        stage('Deploy with Helm') {
+        stage('Deploy to Kubernetes') {
             steps {
-                // Ensure Helm is installed
-                sh '''
-                    if ! command -v helm &> /dev/null; then
-                        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-                    fi
-                    helm version
-                '''
+                dir('k8s') { // Raw manifests folder
+                    withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
+                        sh '''
+                            # Install kubectl if not already installed
+                            if ! command -v kubectl &> /dev/null; then
+                                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                                chmod +x kubectl
+                                sudo mv kubectl /usr/local/bin/
+                            fi
 
-                // Deploy using Helm with kubeconfig credentials
-                withCredentials([file(credentialsId: 'kubeconfig-id', variable: 'KUBECONFIG')]) {
-                    dir('helm/java-cicd-app') {
-                        sh """
-                            helm upgrade --install java-cicd-app . \
-                                --set image.repository=$DOCKER_IMAGE \
-                                --set image.tag=${BUILD_NUMBER} \
-                                --wait
-                        """
+                            # Set kubeconfig and permissions
+                            export KUBECONFIG=$KUBECONFIG_FILE
+                            chmod 600 $KUBECONFIG
+
+                            # Apply manifests
+                            kubectl apply -f deployment.yaml
+                            kubectl apply -f service.yaml
+                        '''
                     }
                 }
             }
         }
-
     }
 
     post {
