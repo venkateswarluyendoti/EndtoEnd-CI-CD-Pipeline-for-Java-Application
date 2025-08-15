@@ -77,26 +77,24 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 dir('k8s') {
-                    withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
-                        sh '''
+                    script {
+                        // Install kubectl if not present
+                        sh """
                             if ! command -v kubectl &> /dev/null; then
                                 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                                 chmod +x kubectl
                                 mv kubectl /usr/local/bin/
                             fi
+                        """
 
-                            export KUBECONFIG=$KUBECONFIG_FILE
-                            chmod 600 $KUBECONFIG
+                        // Use kubeconfig from Jenkins credentials
+                        writeFile file: 'kubeconfig', text: KUBE_CONFIG
+                        sh "chmod 600 kubeconfig"
 
-                            kubectl apply -f namespace.yaml --validate=false
-                            kubectl apply -f deployment.yaml --validate=false
-                            kubectl apply -f service.yaml --validate=false
-                            kubectl apply -f configmap.yaml --validate=false
-                            kubectl apply -f argocd-application.yaml --validate=false
-                            kubectl apply -f hpa.yaml --validate=false
-                            kubectl apply -f rbac-role.yaml --validate=false
-                            kubectl apply -f rbac-rolebinding.yaml --validate=false
-                        '''
+                        // Apply Kubernetes manifests with --validate=false
+                        sh "kubectl --kubeconfig=kubeconfig apply -f namespace.yaml --validate=false"
+                        sh "kubectl --kubeconfig=kubeconfig apply -f deployment.yaml --validate=false"
+                        sh "kubectl --kubeconfig=kubeconfig apply -f service.yaml --validate=false"
                     }
                 }
             }
