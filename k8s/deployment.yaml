@@ -34,7 +34,7 @@ spec:
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
-            timeoutSeconds: 2
+            timeoutSeconds: 5
             failureThreshold: 3
           livenessProbe:
             httpGet:
@@ -42,7 +42,7 @@ spec:
               port: 8080
             initialDelaySeconds: 20
             periodSeconds: 20
-            timeoutSeconds: 2
+            timeoutSeconds: 5
             failureThreshold: 3
           resources:
             requests:
