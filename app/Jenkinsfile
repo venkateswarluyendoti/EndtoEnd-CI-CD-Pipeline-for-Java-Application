@@ -9,7 +9,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
         DOCKER_IMAGE = "venkatesh384/java-cicd-app"
-        KUBE_CONFIG = credentials('kubeconfig-cred') // Kubernetes kubeconfig file
+        KUBE_CONFIG = credentials('kubeconfig-cred')
     }
 
     stages {
@@ -76,30 +76,26 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                dir('k8s') { // Raw manifests folder
+                dir('k8s') {
                     withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
                         sh '''
-                            # Install kubectl if not already installed
                             if ! command -v kubectl &> /dev/null; then
                                 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                                 chmod +x kubectl
                                 mv kubectl /usr/local/bin/
                             fi
 
-                            # Set kubeconfig and permissions
                             export KUBECONFIG=$KUBECONFIG_FILE
                             chmod 600 $KUBECONFIG
 
-                            # Apply manifests
-                            kubectl apply -f namespace.yaml
-                            kubectl apply -f deployment.yaml
-                            kubectl apply -f service.yaml
-                            kubectl apply -f configmap.yaml 
-                            kubectl apply -f argocd-application.yaml
-                            kubectl apply -f hpa.yaml 
-                            kubectl apply -f rbac-role.yaml
-                            kubectl apply -f rbac-rolebinding.yaml
-                            kubectl apply -f kubectl apply -f rbac-role.yaml
+                            kubectl apply -f namespace.yaml --validate=false
+                            kubectl apply -f deployment.yaml --validate=false
+                            kubectl apply -f service.yaml --validate=false
+                            kubectl apply -f configmap.yaml --validate=false
+                            kubectl apply -f argocd-application.yaml --validate=false
+                            kubectl apply -f hpa.yaml --validate=false
+                            kubectl apply -f rbac-role.yaml --validate=false
+                            kubectl apply -f rbac-rolebinding.yaml --validate=false
                         '''
                     }
                 }
