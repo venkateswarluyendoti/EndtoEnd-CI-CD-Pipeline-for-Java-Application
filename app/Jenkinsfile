@@ -50,12 +50,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir('app') {
-                    script {
-                        sh """
-                            docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile .
-                            docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
-                        """
-                    }
+                    sh """
+                        docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile .
+                        docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
+                    """
                 }
             }
         }
@@ -63,38 +61,34 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 dir('app') {
-                    script {
-                        sh """
-                            echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                            docker push $DOCKER_IMAGE:${BUILD_NUMBER}
-                            docker push $DOCKER_IMAGE:latest
-                        """
-                    }
+                    sh """
+                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                        docker push $DOCKER_IMAGE:${BUILD_NUMBER}
+                        docker push $DOCKER_IMAGE:latest
+                    """
                 }
+            }
+        }
+
+        stage('Install kubectl') {
+            steps {
+                sh '''
+                    if ! command -v kubectl &> /dev/null; then
+                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                        chmod +x kubectl
+                        sudo mv kubectl /usr/local/bin/
+                    fi
+                '''
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
                 dir('k8s') {
-                    script {
-                        // Install kubectl if not present
-                        sh """
-                            if ! command -v kubectl &> /dev/null; then
-                                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                                chmod +x kubectl
-                                mv kubectl /usr/local/bin/
-                            fi
-                        """
-
-                        // Use kubeconfig from Jenkins credentials
-                        writeFile file: 'kubeconfig', text: KUBE_CONFIG
-                        sh "chmod 600 kubeconfig"
-
-                        // Apply Kubernetes manifests with --validate=false
-                        sh "kubectl --kubeconfig=kubeconfig apply -f namespace.yaml --validate=false"
-                        sh "kubectl --kubeconfig=kubeconfig apply -f deployment.yaml --validate=false"
-                        sh "kubectl --kubeconfig=kubeconfig apply -f service.yaml --validate=false"
+                    kubeconfig(credentialsId: 'kubeconfig-cred') {
+                        sh 'kubectl apply -f namespace.yaml --validate=false'
+                        sh 'kubectl apply -f deployment.yaml --validate=false'
+                        sh 'kubectl apply -f service.yaml --validate=false'
                     }
                 }
             }
