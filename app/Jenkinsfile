@@ -50,10 +50,12 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir('app') {
-                    sh """
-                        docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile .
-                        docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
-                    """
+                    script {
+                        sh """
+                            docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile .
+                            docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
+                        """
+                    }
                 }
             }
         }
@@ -61,34 +63,35 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 dir('app') {
-                    sh """
-                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                        docker push $DOCKER_IMAGE:${BUILD_NUMBER}
-                        docker push $DOCKER_IMAGE:latest
-                    """
+                    script {
+                        sh """
+                            echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                            docker push $DOCKER_IMAGE:${BUILD_NUMBER}
+                            docker push $DOCKER_IMAGE:latest
+                        """
+                    }
                 }
-            }
-        }
-
-        stage('Install kubectl') {
-            steps {
-                sh '''
-                    if ! command -v kubectl &> /dev/null; then
-                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                        chmod +x kubectl
-                        sudo mv kubectl /usr/local/bin/
-                    fi
-                '''
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
                 dir('k8s') {
-                    kubeconfig(credentialsId: 'kubeconfig-cred') {
-                        sh 'kubectl apply -f namespace.yaml --validate=false'
-                        sh 'kubectl apply -f deployment.yaml --validate=false'
-                        sh 'kubectl apply -f service.yaml --validate=false'
+                    withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
+                        sh '''
+                            if ! command -v kubectl &> /dev/null; then
+                                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                                chmod +x kubectl
+                                mv kubectl /usr/local/bin/
+                            fi
+
+                            export KUBECONFIG=$KUBECONFIG_FILE
+                            chmod 600 $KUBECONFIG
+
+                            kubectl apply -f namespace.yaml --validate=false
+                            kubectl apply -f deployment.yaml --validate=false
+                            kubectl apply -f service.yaml --validate=false
+                        '''
                     }
                 }
             }
