@@ -189,7 +189,7 @@ Never use sudo kubectl or sudo minikube.
 Jenkins will now successfully read ~/.kube/config + ~/.minikube since we mount them into the container.
 
 
-STEP : 3
+STEP : 4
 ---------
 
 ubuntu@ip-172-31-39-62:~$ docker exec -it jenkins bash
