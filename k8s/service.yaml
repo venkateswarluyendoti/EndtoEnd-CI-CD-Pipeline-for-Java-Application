@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: java-cicd-service
-  namespace: dev
+  namespace: argocd
   labels:
     app: java-cicd-app
 spec:
