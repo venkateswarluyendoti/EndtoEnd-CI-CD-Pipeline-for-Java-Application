@@ -101,8 +101,6 @@ pipeline {
                             argocd login 34.204.77.57:30441 \
                             --username admin \
                             --password $ARGOCD_PASSWORD \
-                            --insecure
-
                             echo "🔹 Syncing application with ArgoCD..."
                             argocd app sync java-cicd-app
                         '''
