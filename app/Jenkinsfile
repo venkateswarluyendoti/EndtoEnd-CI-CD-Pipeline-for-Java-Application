@@ -9,7 +9,6 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
         DOCKER_IMAGE = "venkatesh384/java-cicd-app"
-        KUBE_CONFIG = credentials('kubeconfig-cred')
     }
 
     stages {
@@ -70,38 +69,29 @@ pipeline {
             }
         }
 
-        stage('Install kubectl & ArgoCD CLI') {
+        stage('Install ArgoCD CLI') {
             steps {
                 sh '''
-                    echo "🔹 Installing kubectl..."
-                    if ! command -v kubectl &> /dev/null; then
-                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                        chmod +x kubectl
-                        mv kubectl /usr/local/bin/
-                    fi
-
                     echo "🔹 Installing Argo CD CLI..."
                     if ! command -v argocd &> /dev/null; then
                         curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
                         chmod +x argocd
                         mv argocd /usr/local/bin/
                     fi
-
-                    kubectl version --client
                     argocd version --client
                 '''
             }
         }
 
-        stage('Apply Kubernetes Manifests & Sync App with ArgoCD') {
+        stage('Sync App with ArgoCD') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG')]) {
+                withCredentials([string(credentialsId: 'argocd-admin-password', variable: 'ARGOCD_PASSWORD')]) {
                     sh '''
                         echo "🔹 Logging in to ArgoCD..."
                         argocd login 34.204.77.57:31439 \
-                        --username admin \
-                        --password $(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) \
-                        --insecure
+                          --username admin \
+                          --password $ARGOCD_PASSWORD \
+                          --insecure
 
                         echo "🔹 Syncing application..."
                         argocd app sync java-cicd-app
