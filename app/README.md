@@ -302,6 +302,10 @@ Inside Jenkins, you’d then install Docker CLI in the container.
 2. Access the container shell
 
 docker exec -it jenkins bash
+
+docker exec -it -u root jenkins bash
+
+
 cat /var/jenkins_home/secrets/initialAdminPassword
 
 Install Docker on Jenkins server:

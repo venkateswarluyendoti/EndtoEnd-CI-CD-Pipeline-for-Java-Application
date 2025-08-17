@@ -97,9 +97,6 @@ pipeline {
                 withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG')]) {
                     withCredentials([string(credentialsId: 'argocd-admin-password', variable: 'ARGOCD_PASSWORD')]) {
                         sh '''
-                            echo "🔹 Applying Kubernetes manifests..."
-                            kubectl apply -f k8s/
-
                             echo "🔹 Logging into ArgoCD..."
                             argocd login 34.204.77.57:31439 \
                             --username admin \
