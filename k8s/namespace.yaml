@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: dev
+  name: argocd
   labels:
     app.kubernetes.io/name: java-cicd-app
     app.kubernetes.io/part-of: end-to-end-java-cicd
