@@ -98,7 +98,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'argocd-admin-password', variable: 'ARGOCD_PASSWORD')]) {
                         sh '''
                             echo "🔹 Logging into ArgoCD..."
-                            argocd login 34.204.77.57:31439 \
+                            argocd login 34.204.77.57:30441 \
                             --username admin \
                             --password $ARGOCD_PASSWORD \
                             --insecure
