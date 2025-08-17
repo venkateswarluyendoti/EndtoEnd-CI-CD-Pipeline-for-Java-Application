@@ -1,3 +1,4 @@
+''' bash
 Module 1 – Project Structure & Java App
 1. Repo Structure (Initial Stage)
 end-to-end-java-cicd-pipeline/
@@ -275,6 +276,21 @@ docker run -d \
   -v /var/run/docker.sock:/var/run/docker.sock \
   jenkins/jenkins:lts
 
+       (or)
+
+docker run -d \
+  --name jenkins \
+  -u root \
+  -p 8081:8080 \
+  -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /usr/bin/docker:/usr/bin/docker \
+  -v $HOME/.kube:/root/.kube \
+  -v $HOME/.minikube:/root/.minikube \
+  jenkins/jenkins:lts
+
+
 Here:
 
 -u root lets Jenkins run as root
@@ -410,3 +426,21 @@ mvn clean verify sonar:sonar \
   -Dsonar.projectKey=java-cicd-app \
   -Dsonar.host.url=http://localhost:9000 \
   -Dsonar.login=<token>
+
+
+
+  Sonarqube installation commands:
+  --------------------------------
+1. Pull SonarQube Image
+docker pull sonarqube:latest
+
+2. Run SonarQube Container
+docker run -d \
+  --name sonarqube \
+  -p 9000:9000 \
+  -v sonarqube_data:/opt/sonarqube/data \
+  -v sonarqube_logs:/opt/sonarqube/logs \
+  -v sonarqube_extensions:/opt/sonarqube/extensions \
+  sonarqube:latest
+
+

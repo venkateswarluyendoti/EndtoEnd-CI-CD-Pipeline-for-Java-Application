@@ -39,8 +39,8 @@ pipeline {
                             mvn clean verify sonar:sonar \
                             -Dsonar.projectKey=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
                             -Dsonar.projectName='EndtoEnd-CI-CD-Pipeline-for-Java-Application' \
-                            -Dsonar.host.url=http://3.87.3.241:9000 \
-                            -Dsonar.token=sqp_cf45f4d0938cf718b691857f51118aeca5ea818a
+                            -Dsonar.host.url=http://34.204.77.57:9000 \
+                            -Dsonar.token=sqp_93fe46d2dde6e0804ca234e6989103018c01fd5d
                         '''
                     }
                 }
