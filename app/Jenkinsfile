@@ -59,6 +59,25 @@ pipeline {
             }
         }
 
+        stage('Trivy Security Scan') {
+            steps {
+                dir('app') {
+                    sh '''
+                        if ! command -v trivy &> /dev/null; then
+                            echo "🔹 Installing Trivy..."
+                            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                            mv trivy /usr/local/bin/
+                        fi
+
+                        echo "🔹 Running Trivy scan on image..."
+                        trivy image --exit-code 0 --severity LOW,MEDIUM,HIGH,CRITICAL $DOCKER_IMAGE:${BUILD_NUMBER} > trivy-report.txt
+                        trivy image --exit-code 1 --severity CRITICAL $DOCKER_IMAGE:${BUILD_NUMBER} || true
+                        cat trivy-report.txt
+                    '''
+                }
+            }
+        }
+
         stage('Push to DockerHub') {
             steps {
                 dir('app') {
@@ -100,7 +119,7 @@ pipeline {
                     file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG'),
                     usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')
                 ]) {
-                    dir('k8s') {   // adjust to your manifests folder
+                    dir('k8s') {
                         sh '''
                             echo "🔹 Updating Kubernetes manifests with new image tag..."
                             sed -i "s|image: venkatesh384/java-cicd-app:.*|image: venkatesh384/java-cicd-app:${BUILD_NUMBER}|g" deployment.yaml
@@ -123,10 +142,26 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline executed successfully!"
+            script {
+                // Slack notification
+                slackSend channel: '#ci-cd-alerts',
+                          message: "✅ Jenkins Pipeline Success! ArgoCD synced *java-cicd-app* to Healthy state.\nImage: venkatesh384/java-cicd-app:${env.BUILD_NUMBER}"
+
+                // Email notification
+                emailext subject: "✅ SUCCESS: Java CI/CD Pipeline",
+                body: "Pipeline finished successfully.\n\nApplication is synced and healthy in ArgoCD.\nImage: venkatesh384/java-cicd-app:${env.BUILD_NUMBER}",
+                to: "venkyvenky7353@gmail.com"
+            }
         }
         failure {
-            echo "❌ Pipeline failed!"
+            script {
+                slackSend channel: '#ci-cd-alerts',
+                          message: "❌ Jenkins Pipeline Failed! ArgoCD did not sync *java-cicd-app*."
+
+                emailext subject: "❌ FAILURE: Java CI/CD Pipeline",
+                body: "Pipeline failed because ArgoCD did not sync within timeout.\nPlease check ArgoCD dashboard.",
+                to: "venkyvenky7353@gmail.com"
+            }
         }
     }
 }
