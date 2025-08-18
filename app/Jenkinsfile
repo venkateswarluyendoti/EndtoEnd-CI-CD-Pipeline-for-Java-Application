@@ -59,16 +59,25 @@ pipeline {
             }
         }
 
+        stage('Install Trivy') {
+            steps {
+                sh '''
+                    echo "🔹 Installing Trivy..."
+                    if ! command -v trivy &> /dev/null; then
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                        sudo mv ./bin/trivy /usr/local/bin/trivy
+                        rm -rf ./bin
+                    fi
+
+                    trivy --version
+                '''
+            }
+        }
+
         stage('Trivy Security Scan') {
             steps {
                 dir('app') {
                     sh '''
-                        if ! command -v trivy &> /dev/null; then
-                            echo "🔹 Installing Trivy..."
-                            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-                            mv trivy /usr/local/bin/
-                        fi
-
                         echo "🔹 Running Trivy scan on image..."
                         trivy image --exit-code 0 --severity LOW,MEDIUM,HIGH,CRITICAL $DOCKER_IMAGE:${BUILD_NUMBER} > trivy-report.txt
                         trivy image --exit-code 1 --severity CRITICAL $DOCKER_IMAGE:${BUILD_NUMBER} || true
@@ -143,11 +152,9 @@ pipeline {
     post {
         success {
             script {
-                // Slack notification
                 slackSend channel: '#ci-cd-alerts',
                           message: "✅ Jenkins Pipeline Success! ArgoCD synced *java-cicd-app* to Healthy state.\nImage: venkatesh384/java-cicd-app:${env.BUILD_NUMBER}"
 
-                // Email notification
                 emailext subject: "✅ SUCCESS: Java CI/CD Pipeline",
                 body: "Pipeline finished successfully.\n\nApplication is synced and healthy in ArgoCD.\nImage: venkatesh384/java-cicd-app:${env.BUILD_NUMBER}",
                 to: "venkyvenky7353@gmail.com"
