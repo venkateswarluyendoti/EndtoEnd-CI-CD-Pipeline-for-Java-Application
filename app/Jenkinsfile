@@ -151,24 +151,10 @@ pipeline {
 
     post {
         success {
-            script {
-                slackSend channel: '#ci-cd-alerts',
-                          message: "✅ Jenkins Pipeline Success! ArgoCD synced *java-cicd-app* to Healthy state.\nImage: venkatesh384/java-cicd-app:${env.BUILD_NUMBER}"
-
-                emailext subject: "✅ SUCCESS: Java CI/CD Pipeline",
-                body: "Pipeline finished successfully.\n\nApplication is synced and healthy in ArgoCD.\nImage: venkatesh384/java-cicd-app:${env.BUILD_NUMBER}",
-                to: "venkyvenky7353@gmail.com"
-            }
+            echo "✅ Jenkins Pipeline SUCCESS: Job ${env.JOB_NAME}, Build #${env.BUILD_NUMBER}"
         }
         failure {
-            script {
-                slackSend channel: '#ci-cd-alerts',
-                          message: "❌ Jenkins Pipeline Failed! ArgoCD did not sync *java-cicd-app*."
-
-                emailext subject: "❌ FAILURE: Java CI/CD Pipeline",
-                body: "Pipeline failed because ArgoCD did not sync within timeout.\nPlease check ArgoCD dashboard.",
-                to: "venkyvenky7353@gmail.com"
-            }
+            echo "❌ Jenkins Pipeline FAILED: Job ${env.JOB_NAME}, Build #${env.BUILD_NUMBER}"
         }
     }
 }
