@@ -65,7 +65,7 @@ pipeline {
                     echo "🔹 Installing Trivy..."
                     if ! command -v trivy &> /dev/null; then
                         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-                        sudo mv ./bin/trivy /usr/local/bin/trivy
+                        mv ./bin/trivy /usr/local/bin/trivy
                         rm -rf ./bin
                     fi
 
