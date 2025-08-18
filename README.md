@@ -1,6 +1,5 @@
-<p align="center">
-  <b><font size="6">End-to-End CI/CD Pipeline for Java Application</font></b>
-</p>
+<h1 align="center">End-to-End CI/CD Pipeline for Java Application</h1>
+
 
 <p align="center">
   Complete DevOps workflow for a <b>Spring Boot Java application</b> from AWS EC2 setup → Jenkins CI/CD → Docker → SonarQube → Kubernetes → ArgoCD GitOps deployment.
@@ -450,5 +449,5 @@ kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n a
 
 # Output: Hello from the End-to-End CI/CD Pipeline Java Application!
 ## <img width="1917" height="380" alt="image" src="https://github.com/user-attachments/assets/2e6f7574-a069-4b55-878d-a8bde0d4a35d" />
-## **Conclusion:**
+### **Conclusion:**
 This project presents a fully automated end-to-end CI/CD pipeline for a Spring Boot Java application. It demonstrates best practices in DevOps automation, including continuous integration, containerization, code quality analysis, security scanning, Kubernetes deployment, and GitOps with ArgoCD.
