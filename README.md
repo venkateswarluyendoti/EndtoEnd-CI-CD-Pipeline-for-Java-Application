@@ -401,7 +401,7 @@ kubectl get svc -n argocd
 ```
 ## <img width="1902" height="1066" alt="Screenshot 2025-08-18 205010" src="https://github.com/user-attachments/assets/ecdf50b1-649c-438a-9a20-52c6d13394f4" />
 
-# Update EC2 security group for NodePort
+## Update EC2 security group for NodePort
 ```bash
 kubectl port-forward --address 0.0.0.0 service/argocd-server 30441:80 -n argocd
 ```
