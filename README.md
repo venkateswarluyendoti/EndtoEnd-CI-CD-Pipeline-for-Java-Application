@@ -180,7 +180,17 @@ newgrp docker
 
 **Checkout GitHub, Maven build, SonarQube, Docker build, Trivy scan, Kubernetes/ArgoCD deployment.**
 
-# Pipeline Credentials:
+### Required Plugins
+```bash
+1. Pipeline
+
+2. Docker Pipeline
+
+3. SonarQube Scanner
+
+4. Git plugin
+```
+### Pipeline Credentials:
 ```bash
 Credential ID	          Type	                           Purpose
 dockerhub-creds	    Username & Password	               DockerHub login
@@ -461,15 +471,15 @@ kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n a
 
 ## 🏆 Achievements
 
-##### * Implemented Jenkins Pipeline-as-Code with GitHub SCM, providing traceability, version control, and fully automated CI/CD workflows.
+##### * Implemented Jenkins Pipeline-as-Code with GitHub SCM, providing traceability, version control, and fully automated           CI/CD workflows.
 
-##### * Integrated SonarQube & Trivy into Jenkins pipeline, improving code quality and catching security vulnerabilities early in the CI process.
+##### * Integrated SonarQube & Trivy into Jenkins pipeline, improving code quality and catching security vulnerabilities             early in the CI process.
 
-##### * Automated Docker image build & push to DockerHub, enabling repeatable, versioned, and portable application deployments.
+##### * Automated Docker image build & push to DockerHub, enabling repeatable, versioned, and portable application                   deployments.
 
-##### * Enabled GitOps delivery with Argo CD, reducing manual deployment effort by ~90%/ and ensuring automated synchronization of Kubernetes workloads.
+##### * Enabled GitOps delivery with Argo CD, reducing manual deployment effort by ~90% and ensuring automated                       synchronization of Kubernetes workloads.
 
-##### * Deployed Spring Boot app on Kubernetes (Minikube) using raw manifests, strengthening Kubernetes fundamentals without Helm abstraction.
+##### * Deployed Spring Boot app on Kubernetes (Minikube) using raw manifests, strengthening Kubernetes fundamentals                 without Helm abstraction.
 
 ## 🔭 Future Scope
 
