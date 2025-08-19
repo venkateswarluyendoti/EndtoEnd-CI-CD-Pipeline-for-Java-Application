@@ -393,7 +393,8 @@ kubectl get svc -n argocd
 kubectl port-forward --address 0.0.0.0 service/argocd-server 30441:80 -n argocd
 ```
 
-# Access UI: https://<ec2-public-ip>:30441 
+# Access UI: https://ec2-public-ip:30441
+
 ## <img width="1905" height="1078" alt="Screenshot 2025-08-18 205139" src="https://github.com/user-attachments/assets/73260f58-9786-409b-874b-fbc9cdd1f5bf" />
 
 ## <img width="1212" height="550" alt="Screenshot 2025-08-18 204524" src="https://github.com/user-attachments/assets/de302d66-c3e1-4c3e-99c1-13a212ec54f9" />
@@ -448,6 +449,7 @@ kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n a
 **Open browser: http://ec2-public-ip:30081**
 
 ### Output: Hello from the End-to-End CI/CD Pipeline Java Application!
+
 ### <img width="1917" height="380" alt="image" src="https://github.com/user-attachments/assets/2e6f7574-a069-4b55-878d-a8bde0d4a35d" />
 
 ## Achievements
