@@ -406,7 +406,7 @@ kubectl get svc -n argocd
 kubectl port-forward --address 0.0.0.0 service/argocd-server 30441:80 -n argocd
 ```
 
-# Access UI: https://ec2-public-ip:30441
+## Access UI: https://ec2-public-ip:30441
 
 ## <img width="1905" height="1078" alt="Screenshot 2025-08-18 205139" src="https://github.com/user-attachments/assets/73260f58-9786-409b-874b-fbc9cdd1f5bf" />
 
