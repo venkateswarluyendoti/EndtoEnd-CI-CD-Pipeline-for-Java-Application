@@ -6,6 +6,9 @@
 </p>
 
 ---
+## 📊 Architecture & Workflow
+
+<img width="1536" height="1024" alt="ChatGPT Image Aug 19, 2025, 02_17_06 PM" src="https://github.com/user-attachments/assets/3ba75467-6777-4ccf-b3c4-1daa26b740ce" />
 
 ## **Module 1 – AWS EC2 Instance Setup**
 
