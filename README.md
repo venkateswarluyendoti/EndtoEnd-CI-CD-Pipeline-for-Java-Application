@@ -445,9 +445,26 @@ kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n a
 ```
 ## <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/fba304dd-87e2-4e5e-93e4-5d9c652ae316" />
 
-**Open browser: http://<ec2-public-ip>:30081**
+**Open browser: http://ec2-public-ip:30081**
 
-# Output: Hello from the End-to-End CI/CD Pipeline Java Application!
-## <img width="1917" height="380" alt="image" src="https://github.com/user-attachments/assets/2e6f7574-a069-4b55-878d-a8bde0d4a35d" />
-### **Conclusion:**
-This project presents a fully automated end-to-end CI/CD pipeline for a Spring Boot Java application. It demonstrates best practices in DevOps automation, including continuous integration, containerization, code quality analysis, security scanning, Kubernetes deployment, and GitOps with ArgoCD.
+### Output: Hello from the End-to-End CI/CD Pipeline Java Application!
+### <img width="1917" height="380" alt="image" src="https://github.com/user-attachments/assets/2e6f7574-a069-4b55-878d-a8bde0d4a35d" />
+
+## Achievements
+
+### * Implemented Jenkins Pipeline-as-Code with GitHub SCM, providing traceability, version control, and fully automated CI/CD workflows.
+
+### * Integrated SonarQube & Trivy into Jenkins pipeline, improving code quality and catching security vulnerabilities early in the CI process.
+
+### * Automated Docker image build & push to DockerHub, enabling repeatable, versioned, and portable application deployments.
+
+### * Enabled GitOps delivery with Argo CD, reducing manual deployment effort by ~90% and ensuring automated synchronization of Kubernetes workloads.
+
+### * Deployed Spring Boot app on Kubernetes (Minikube) using raw manifests, strengthening Kubernetes fundamentals without Helm abstraction.
+
+
+
+
+
+
+
