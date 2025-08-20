@@ -23,7 +23,7 @@ resources:
 
 ingress:
   enabled: true
-  host: java-app.local  # for Ingress (optional)
+  host: java-app-new.local   # for Ingress (optional)
 
 namespace:
   name: java-app
