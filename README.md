@@ -55,25 +55,77 @@ ubuntu@ip-172-31-39-62:~$
 
 ## **Module 2 – Project Folder Structure**
 ```bash
-EndtoEnd-CI-CD-Pipeline-for-Java-Application/
+.
+├── README.md
 ├── app
 │   ├── Jenkinsfile
 │   ├── README.md
-│   ├── docker/Dockerfile
-│   ├── helm/java-cicd-app/...
+│   ├── docker
+│   │   └── Dockerfile
 │   ├── pom.xml
-│   ├── src/...
-│   └── target/...
-└── k8s
-    ├── argocd-application.yaml
-    ├── configmap.yaml
-    ├── deployment.yaml
-    ├── hpa.yaml
-    ├── namespace.yaml
-    ├── rbac-role.yaml
-    ├── rbac-rolebinding.yaml
-    ├── service.yaml
-    └── serviceaccount.yaml
+│   ├── src
+│   │   ├── README.md
+│   │   ├── main
+│   │   │   ├── java
+│   │   │   │   └── com
+│   │   │   │       └── example
+│   │   │   │           └── demo
+│   │   │   │               ├── DemoApplication.java
+│   │   │   │               └── controller
+│   │   │   │                   └── HelloController.java
+│   │   │   └── resources
+│   │   │       ├── application.properties
+│   │   │       └── static
+│   │   │           └── templates
+│   │   │               └── index.html
+│   │   ├── target
+│   │   │   ├── java-cicd-demo-0.0.1-SNAPSHOT.jar
+│   │   │   └── maven-archiver
+│   │   │       └── pom.properties
+│   │   └── test
+│   │       └── java
+│   │           └── com
+│   │               └── example
+│   │                   └── demo
+│   │                       └── DemoApplicationTests.java
+│   └── target
+│       ├── classes
+│       │   ├── application.properties
+│       │   ├── com
+│       │   │   └── example
+│       │   │       └── demo
+│       │   │           ├── DemoApplication.class
+│       │   │           └── controller
+│       │   │               └── HelloController.class
+│       │   └── static
+│       │       └── templates
+│       │           └── index.html
+│       └── test-classes
+│           └── com
+│               └── example
+│                   └── demo
+│                       └── DemoApplicationTests.class
+├── k8s
+│   ├── argocd-application.yaml
+│   ├── argocd-helm-app.yaml
+│   ├── configmap.yaml
+│   ├── deployment.yaml
+│   ├── hpa.yaml
+│   ├── namespace.yaml
+│   ├── rbac-role.yaml
+│   ├── rbac-rolebinding.yaml
+│   ├── service.yaml
+│   └── serviceaccount.yaml
+└── springboot-helm-chart
+    ├── Chart.yaml
+    ├── templates
+    │   ├── _helpers.tpl
+    │   ├── deployment.yaml
+    │   ├── ingress.yaml
+    │   └── service.yaml
+    └── values.yaml
+
+35 directories, 34 files
 ```
 
 ## **Module 3 – Java Spring Boot Setup and Environment**
