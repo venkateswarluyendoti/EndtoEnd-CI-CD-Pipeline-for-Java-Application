@@ -298,3 +298,69 @@ curl -k https://34.204.77.57:30441
 
 
 
+<<<<<<< HEAD
+Jenkins will now successfully read ~/.kube/config + ~/.minikube since we mount them into the container.
+
+STEP : 4
+---------
+
+ubuntu@ip-172-31-39-62:~$ docker exec -it jenkins bash
+root@e2b560aad349:/# curl -v http://34.204.77.57:30441
+*   Trying 34.204.77.57:30441...
+* Connected to 34.204.77.57 (34.204.77.57) port 30441 (#0)
+> GET / HTTP/1.1
+> Host: 34.204.77.57:30441
+> User-Agent: curl/7.88.1
+> Accept: */*
+> 
+< HTTP/1.1 307 Temporary Redirect
+< Content-Type: text/html; charset=utf-8
+< Location: https://34.204.77.57:30441/
+< Date: Sun, 17 Aug 2025 12:46:35 GMT
+< Content-Length: 63
+<
+<a href="https://34.204.77.57:30441/">Temporary Redirect</a>.
+
+* Connection #0 to host 34.204.77.57 left intact
+
+
+Solution:
+---------
+
+The curl output shows that your Argo CD server is reachable, but it’s returning a 307 Temporary Redirect to HTTPS:
+
+< Location: https://34.204.77.57:30441/
+
+
+This means the server expects connections over HTTPS, not HTTP.
+
+Use --insecure with HTTPS in your argocd login command:
+
+argocd login 34.204.77.57:30441 --username admin --password <password> --insecure
+
+
+Key points:
+
+HTTPS is required (the server redirects HTTP → HTTPS).
+
+--insecure allows login despite self-signed certificates.
+
+Make sure Jenkins container or host can reach port 30441 via HTTPS.
+
+💡 Optional: Test manually first from the Jenkins host:
+
+curl -k https://34.204.77.57:30441
+
+
+You should get the Argo CD login page HTML.
+
+After that, the pipeline should be able to log in and proceed.
+
+
+Output:
+-------
+
+root@e2b560aad349:/# curl -k https://34.204.77.57:30441
+<!doctype html><html lang="en"><head><meta cha                                         rset="UTF-8"><title>Argo CD</title><base href=                                    "/"><meta name="viewport" content="width=devic                               e-width,initial-scale=1"><link rel="icon" type="image/png" href="assets/favicon/favicon-32x32.png" sizes="32x32"/><link rel="icon" type="image/png" href="assets/favicon/favicon-16x16.png" sizes="16x16"/><link href="assets/fonts.css" rel="stylesheet"><script defer="de-width,initial-scale=1"><link rel="icon" type="image/png" href="assets/favicon/favicon-32x32.png" sizes="32x32"/><link rel="icon" type="image/png" href="assets/favicon/favicon-16x16.png" sizes="16x16"/><link href="assets/fonts.css" rel="stylesheet"><script defer="defer" src="main.6428ac7755a7519079f9.js"></script></head><body><noscript><p>Your browser does not support JavaScript. Please enable JavaScript to view the site. Alternatively, Argo CD can be used with the <a href="https://argoproj.github.io/argo-cd/cli_installation/">Argo CD CLI</a>.</p></noscript><div id="app"></div></body><script defer="defer" src="extensions.js"></script></html>
+=======
+>>>>>>> master

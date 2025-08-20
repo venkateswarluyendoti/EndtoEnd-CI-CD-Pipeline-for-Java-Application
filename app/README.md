@@ -480,6 +480,21 @@ kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n a
 **Handling connection for 30081**
 **Handling connection for 30081**
 
+<<<<<<< HEAD
+
+Run application on browser:-
+----------------------------
+ubuntu@ip-172-31-39-62:~/EndtoEnd-CI-CD-Pipeline-for-Java-Application/k8s$ kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n argocd
+Forwarding from 0.0.0.0:30081 -> 8080
+Handling connection for 30081
+Handling connection for 30081 
+
+
+Output:-
+--------
+Hello from the End-to-End CI/CD Pipeline Java Application!
+=======
 # Output:-
   --------
 **Hello from the End-to-End CI/CD Pipeline Java Application!**
+>>>>>>> master
