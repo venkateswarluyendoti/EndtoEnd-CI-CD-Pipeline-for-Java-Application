@@ -34,13 +34,15 @@ pipeline {
             steps {
                 dir('app') {
                     withSonarQubeEnv('MySonarQubeServer') {
-                        sh '''
-                            mvn clean verify sonar:sonar \
-                              -Dsonar.projectKey=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
-                              -Dsonar.projectName=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
-                              -Dsonar.host.url=http://34.204.77.57:9000 \
-                              -Dsonar.token=sqp_93fe46d2dde6e0804ca234e6989103018c01fd5d
-                        '''
+                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                            sh '''
+                                mvn clean verify sonar:sonar \
+                                -Dsonar.projectKey=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
+                                -Dsonar.projectName=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
+                                -Dsonar.host.url=http://3.81.58.255:9000 \
+                                -Dsonar.token=$SONAR_TOKEN
+                            '''
+                        }
                     }
                 }
             }
@@ -53,6 +55,34 @@ pipeline {
                         docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile . 
                         docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
                     """
+                }
+            }
+        }
+
+        stage('Install Trivy') {
+            steps {
+                sh '''
+                    echo "🔹 Installing Trivy..."
+                    if ! command -v trivy &> /dev/null; then
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                        mv ./bin/trivy /usr/local/bin/trivy
+                        rm -rf ./bin
+                    fi
+
+                    trivy --version
+                '''
+            }
+        }
+
+        stage('Trivy Security Scan') {
+            steps {
+                dir('app') {
+                    sh '''
+                        echo "🔹 Running Trivy scan on image..."
+                        trivy image --exit-code 0 --severity LOW,MEDIUM,HIGH,CRITICAL $DOCKER_IMAGE:${BUILD_NUMBER} > trivy-report.txt
+                        trivy image --exit-code 1 --severity CRITICAL $DOCKER_IMAGE:${BUILD_NUMBER} || true
+                        cat trivy-report.txt
+                    '''
                 }
             }
         }
@@ -92,18 +122,26 @@ pipeline {
             }
         }
 
-        stage('Apply Kubernetes Manifests & Sync App with ArgoCD') {
+        stage('Apply Kubernetes Manifests (GitOps Style)') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG')]) {
-                    withCredentials([string(credentialsId: 'argocd-admin-password', variable: 'ARGOCD_PASSWORD')]) {
+                withCredentials([
+                    file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG'),
+                    usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')
+                ]) {
+                    dir('k8s') {
                         sh '''
-                            echo "🔹 Logging into ArgoCD..."
-                            argocd login 34.204.77.57:30441 \
-                            --username admin \
-                            --password $ARGOCD_PASSWORD \
-                            --insecure 
-                            echo "🔹 Syncing application with ArgoCD..."
-                            argocd app sync java-cicd-app
+                            echo "🔹 Updating Kubernetes manifests with new image tag..."
+                            sed -i "s|image: venkatesh384/java-cicd-app:.*|image: venkatesh384/java-cicd-app:${BUILD_NUMBER}|g" deployment.yaml
+
+                            echo "🔹 Committing changes to Git repo..."
+                            git config user.name "venkateswarluyendoti"
+                            git config user.email "venkateswarlu.yendoti99@gmail.com"
+                            git add deployment.yaml
+                            git commit -m "Update image to venkatesh384/java-cicd-app:${BUILD_NUMBER} [ci skip]" || echo "No changes to commit"
+
+                            echo "🔹 Pushing changes to GitHub..."
+                            git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git
+                            git push origin master
                         '''
                     }
                 }
@@ -113,10 +151,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline executed successfully!"
+            echo "✅ Jenkins Pipeline SUCCESS: Job ${env.JOB_NAME}, Build #${env.BUILD_NUMBER}"
         }
         failure {
-            echo "❌ Pipeline failed!"
+            echo "❌ Jenkins Pipeline FAILED: Job ${env.JOB_NAME}, Build #${env.BUILD_NUMBER}"
         }
     }
 }

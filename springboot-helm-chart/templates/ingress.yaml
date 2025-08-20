@@ -1,0 +1,23 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "springboot-helm-chart.fullname" . }}
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: {{ include "springboot-helm-chart.name" . }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "springboot-helm-chart.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}

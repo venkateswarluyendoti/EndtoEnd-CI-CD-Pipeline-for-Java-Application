@@ -1,6 +1,8 @@
-''' bash
-Module 1 – Project Structure & Java App
-1. Repo Structure (Initial Stage)
+
+## **Module 1 – Project Structure & Java App**
+
+## 1. Repo Structure (Initial Stage)
+```bash
 end-to-end-java-cicd-pipeline/
 │
 ├── app/                           # Java Spring Boot application
@@ -19,10 +21,11 @@ end-to-end-java-cicd-pipeline/
 │   └── pom.xml
 │
 └── README.md   # will be filled at the end
+```
+## 2. Code for Each File
 
-2. Code for Each File
-app/src/main/java/com/example/demo/DemoApplication.java
-
+**app/src/main/java/com/example/demo/DemoApplication.java**
+```bash
 package com.example.demo;
 
 import org.springframework.boot.SpringApplication;
@@ -35,10 +38,11 @@ public class DemoApplication {
         SpringApplication.run(DemoApplication.class, args);
     }
 }
+```
 
 
-app/src/main/java/com/example/demo/controller/HelloController.java
-
+**app/src/main/java/com/example/demo/controller/HelloController.java**
+```bash
 package com.example.demo.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,15 +56,15 @@ public class HelloController {
         return "Hello from the End-to-End CI/CD Pipeline Java Application!";
     }
 }
+```
 
-
-app/src/main/resources/application.properties
-
+**app/src/main/resources/application.properties**
+```bash
 server.port=8080
 spring.application.name=java-cicd-demo
-
-app/src/main/resources/static/index.html
-
+```
+**app/src/main/resources/static/index.html**
+```bash
 <!DOCTYPE html>
 <html>
 <head>
@@ -71,9 +75,9 @@ app/src/main/resources/static/index.html
     <p>This page is served from the Spring Boot application.</p>
 </body>
 </html>
-
-app/src/test/java/com/example/demo/DemoApplicationTests.java
-
+```
+**app/src/test/java/com/example/demo/DemoApplicationTests.java**
+```bash
 package com.example.demo;
 
 import org.junit.jupiter.api.Test;
@@ -86,10 +90,10 @@ class DemoApplicationTests {
     void contextLoads() {
     }
 }
+```
 
-
-app/pom.xml
-
+**app/pom.xml**
+```bash
 <project xmlns="http://maven.apache.org/POM/4.0.0" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
@@ -140,9 +144,10 @@ app/pom.xml
     </build>
 
 </project>
+```
+**3. Commands to Build & Run Locally**
 
-3. Commands to Build & Run Locally
-
+```bash
 # Navigate to app folder
 cd app
 
@@ -154,13 +159,15 @@ java -jar target/java-cicd-demo-1.0.0.jar
 
 # Test in browser
 # Visit http://localhost:8080
+```
 
-Module 2 – Dockerization of the App
-
+## **Module 2 – Dockerization of the App**
+```bash
 docker/
  └── Dockerfile
 Final Multi-Stage Dockerfile
-
+```
+```bash
 # Stage 1: Build
 FROM maven:3.9.8-eclipse-temurin-17 AS builder
 WORKDIR /app
@@ -175,20 +182,22 @@ WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
+```
 
-Build & Run
-
+**Build & Run**
+```bash
 docker build -t venkatesh384/java-cicd-app:latest -f docker/Dockerfile .
 docker run -p 8080:8080 venkatesh384/java-cicd-app:latest
-
-3. Push the image
-
+```
+**3. Push the image**
+```bash
 docker push venkatesh384/java-cicd-app:latest
+```
+## **Module 3 – Jenkins Declarative Pipeline**
 
-Module 3 – Jenkins Declarative Pipeline
+# Jenkinsfile
 
-Jenkinsfile
-
+```bash
 pipeline {
     agent any
 
@@ -252,21 +261,23 @@ pipeline {
         }
     }
 }
+```
 
+# Required Tools & Plugins in Jenkins
+```bash
+1. Pipeline
 
-Required Tools & Plugins in Jenkins
+2. Docker Pipeline
 
-1.Pipeline
+3. SonarQube Scanner for Jenkins (Module 4 setup)
 
-2.Docker Pipeline
+4. Git plugin
+```
 
-3.SonarQube Scanner for Jenkins (Module 4 setup)
+# Implementation Steps
 
-4.Git plugin
-
-Implementation Steps
-Install with Docker group access
-
+**Install with Docker group access**
+```bash
 docker run -d \
   --name jenkins \
   -u root \
@@ -275,9 +286,10 @@ docker run -d \
   -v jenkins_home:/var/jenkins_home \
   -v /var/run/docker.sock:/var/run/docker.sock \
   jenkins/jenkins:lts
+```
+      **(or)**
 
-       (or)
-
+```bash
 docker run -d \
   --name jenkins \
   -u root \
@@ -289,35 +301,36 @@ docker run -d \
   -v $HOME/.kube:/root/.kube \
   -v $HOME/.minikube:/root/.minikube \
   jenkins/jenkins:lts
+```
 
-
-Here:
-
+**Here:**
+```bash
 -u root lets Jenkins run as root
 
 /var/run/docker.sock allows Jenkins to control Docker on the host
 
 Inside Jenkins, you’d then install Docker CLI in the container.
-
-2. Access the container shell
-
+```
+**2. Access the container shell**
+```bash
 docker exec -it jenkins bash
-
+```
+```bash
 docker exec -it -u root jenkins bash
-
-
+```
+```bash
 cat /var/jenkins_home/secrets/initialAdminPassword
-
-Install Docker on Jenkins server:
-
+```
+**Install Docker on the Jenkins server:**
+```bash
 sudo apt update
 sudo apt install docker.io -y
 sudo usermod -aG docker jenkins
 newgrp docker
+```
 
-
-Create Jenkins credentials for DockerHub:
-
+# Create Jenkins credentials for DockerHub:
+```bash
 ID: dockerhub-creds
 
 Username & password from DockerHub account
@@ -325,20 +338,20 @@ Username & password from DockerHub account
 Create Jenkins credentials for GitHub if repo is private.
 
 Configure SonarQube server in Jenkins → Manage Jenkins → Configure System.
+```
 
-
-Commands for Local Testing (Before Jenkins)
-
+**Commands for Local Testing (Before Jenkins)**
+```bash
 # Build jar
 mvn clean package -DskipTests
 
-# Build docker image
+# Build Docker image
 docker build -t your-dockerhub-username/java-cicd-app:latest -f docker/Dockerfile .
 
 # Run docker image
 docker run -p 8080:8080 your-dockerhub-username/java-cicd-app:latest
-
-
+```
+```bash
 dockerhub-credentials → Create in Jenkins under Manage Jenkins → Credentials:
 
 Kind: Username & Password
@@ -348,33 +361,37 @@ ID: dockerhub-creds
 Username: venkatesh384
 
 Password: DockerHub password or token
+```
 
-Module 4 – SonarQube Integration
+## **Module 4 – SonarQube Integration**
 
-Purpose
+**Purpose**
 
-Run static code analysis on our Java application.
+**Run static code analysis on our Java application.**
+**Detect code smells, bugs, and security vulnerabilities before deployment.**
+**Push results to the SonarQube dashboard for tracking.**
 
-Detect code smells, bugs, and security vulnerabilities before deployment.
-
-Push results to SonarQube dashboard for tracking.
-
-Part 1 – Local / Docker SonarQube Setup
-
+# Part 1 – Local / Docker SonarQube Setup
+```bash
 docker run -d   --name sonarqube   -p 9000:9000   -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true   sonarqube:latest
-                    (or)
+```
+
+                    **(or)**
+                    
+ ```bash                   
 docker run -d --name sonarqube \
   -p 9000:9000 \
   sonarqube:lts-community
+```
 
-SonarQube UI → http://<server-ip>:9000
+**SonarQube UI → http://<server-ip>:9000**
 
-Default credentials: admin / admin (you’ll be prompted to change the password)
+**Default credentials: admin/admin (you’ll be prompted to change the password)**
 
-Part 2 – Jenkins SonarQube Configuration
+# Part 2 – Jenkins SonarQube Configuration
 
-Install Plugin
-
+**Install Plugin**
+```bash
 Go to Manage Jenkins → Plugins
 
 Install SonarQube Scanner for Jenkins
@@ -382,33 +399,35 @@ Install SonarQube Scanner for Jenkins
 Configure SonarQube Server
 
 Go to Manage Jenkins → Configure System
-
-Find SonarQube servers → Add:
-
+```
+**Find SonarQube servers → Add:**
+```bash
 Name: MySonarQubeServer
 Server URL: http://<sonarqube-ip>:9000
 Authentication Token: <generated in SonarQube UI>
+```
+**Add SonarQube Scanner Tool**
 
-Add SonarQube Scanner Tool
+**Go to Manage Jenkins → Global Tool Configuration**
 
-Go to Manage Jenkins → Global Tool Configuration
+**Add SonarQube Scanner with the name SonarScanner.**
 
-Add SonarQube Scanner with name SonarScanner.
+# Part 3 – Project Configuration in SonarQube
 
-Part 3 – Project Configuration in SonarQube
+**Open SonarQube UI → Projects → Manually Create Project**
 
-Open SonarQube UI → Projects → Manually Create Project
+**Set:**
 
-Set:
+**Project Key → java-cicd-app**
 
-Project Key → java-cicd-app
+**Name → Java CICD App**
 
-Name → Java CICD App
+**Generate a Token and copy it (use in Jenkins configuration above).**
 
-Generate a Token and copy it (use in Jenkins configuration above).
+# Part 4 – Jenkinsfile Update
 
-Part 4 – Jenkinsfile Update
-Update SonarQube stage in Jenkinsfile:
+**Update SonarQube stage in Jenkinsfile:**
+```bash
 stage('SonarQube Analysis') {
     steps {
         withSonarQubeEnv('MySonarQubeServer') {
@@ -416,11 +435,12 @@ stage('SonarQube Analysis') {
         }
     }
 }
-(Replace <sonarqube-ip> and <token> with actual values)
+```
+**(Replace <sonarqube-ip> and <token> with actual values)**
 
 
-Part 5 – Local Test (without Jenkins)
-
+# Part 5 – Local Test (without Jenkins)
+```bash
 # Install sonar scanner locally
 brew install sonar-scanner  # Mac
 sudo apt install sonar-scanner-cli -y  # Ubuntu
@@ -430,15 +450,17 @@ mvn clean verify sonar:sonar \
   -Dsonar.projectKey=java-cicd-app \
   -Dsonar.host.url=http://localhost:9000 \
   -Dsonar.login=<token>
+```
 
 
-
-  Sonarqube installation commands:
+# SonarQube installation commands:
   --------------------------------
-1. Pull SonarQube Image
+**1. Pull SonarQube Image**
+```bash
 docker pull sonarqube:latest
-
-2. Run SonarQube Container
+```
+**2. Run SonarQube Container**
+```bash
 docker run -d \
   --name sonarqube \
   -p 9000:9000 \
@@ -446,8 +468,19 @@ docker run -d \
   -v sonarqube_logs:/opt/sonarqube/logs \
   -v sonarqube_extensions:/opt/sonarqube/extensions \
   sonarqube:latest
+```
 
+# Run application on browser:-
+  ---------------------------
+**ubuntu@ip-172-31-39-62:~/EndtoEnd-CI-CD-Pipeline-for-Java-Application/k8s$**
+```bash
+kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n argocd
+```
+**Forwarding from 0.0.0.0:30081 -> 8080**
+**Handling connection for 30081**
+**Handling connection for 30081**
 
+<<<<<<< HEAD
 
 Run application on browser:-
 ----------------------------
@@ -460,3 +493,8 @@ Handling connection for 30081
 Output:-
 --------
 Hello from the End-to-End CI/CD Pipeline Java Application!
+=======
+# Output:-
+  --------
+**Hello from the End-to-End CI/CD Pipeline Java Application!**
+>>>>>>> master

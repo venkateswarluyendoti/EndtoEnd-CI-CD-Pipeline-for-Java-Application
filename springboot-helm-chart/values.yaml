@@ -1,0 +1,29 @@
+replicaCount: 2
+
+image:
+  repository: docker.io/venkatesh384/java-cicd-app
+  tag: latest   # Jenkins will override this
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  name: java-cicd-deployer
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30081
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+ingress:
+  enabled: true
+  host: java-app.local  # change to your domain if available
+
+namespace:
+  name: argocd
