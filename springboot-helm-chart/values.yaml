@@ -23,7 +23,7 @@ resources:
 
 ingress:
   enabled: true
-  host: java-app.local  # change to your domain if available
+  host: java-app.local  # for Ingress (optional)
 
 namespace:
-  name: argocd
+  name: java-app
