@@ -377,6 +377,25 @@ helm upgrade --install java-app ./springboot-helm-chart -n java-app --create-nam
  ######  <img width="1536" height="1024" alt="ChatGPT Image Aug 20, 2025, 06_19_27 PM" src="https://github.com/user-attachments/assets/219e1d29-adc9-4139-8c39-ba61929228fb" />
 
 
+ ##  Fully Remove Helm Resources
+
+###  1️⃣ Check all resources in the namespace
+```bash
+kubectl get all -n java-app
+```
+#### * Look for Pods, Services, Deployments, ConfigMaps, etc.
+
+###  2️⃣ Delete all remaining resources in that namespace
+```bash
+kubectl delete all --all -n java-app
+```
+###  3️⃣  Delete the namespace completely
+```bash
+kubectl delete namespace java-app
+```
+#### * This ensures a clean slate for Helm to work next time.
+
+
 ### ✅ Outcome
 
 ```bash
