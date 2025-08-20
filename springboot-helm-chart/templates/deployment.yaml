@@ -15,30 +15,16 @@ spec:
       labels:
         app: {{ include "springboot-helm-chart.name" . }}
     spec:
-      serviceAccountName: {{ .Values.serviceAccount.name }}
       containers:
-        - name: {{ include "springboot-helm-chart.name" . }}
+        - name: springboot-app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
-          env:
-            - name: APP_MESSAGE
-              valueFrom:
-                configMapKeyRef:
-                  name: java-cicd-config
-                  key: APP_MESSAGE
-          readinessProbe:
-            httpGet:
-              path: /
-              port: {{ .Values.service.port }}
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /
-              port: {{ .Values.service.port }}
-            initialDelaySeconds: 20
-            periodSeconds: 20
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}

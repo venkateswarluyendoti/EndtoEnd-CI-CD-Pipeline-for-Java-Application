@@ -4,8 +4,6 @@ kind: Ingress
 metadata:
   name: {{ include "springboot-helm-chart.fullname" . }}
   namespace: {{ .Values.namespace.name }}
-  labels:
-    app: {{ include "springboot-helm-chart.name" . }}
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
