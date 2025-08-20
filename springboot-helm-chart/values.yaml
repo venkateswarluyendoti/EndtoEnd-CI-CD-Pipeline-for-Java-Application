@@ -11,7 +11,7 @@ serviceAccount:
 service:
   type: NodePort
   port: 8080
-  nodePort: 30081
+  nodePort: 30090
 
 resources:
   requests:
