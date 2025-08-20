@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/venky2350/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git'
-    targetRevision: HEAD
+    targetRevision: main
     path: springboot-helm-chart
     helm:
       releaseName: java-app
