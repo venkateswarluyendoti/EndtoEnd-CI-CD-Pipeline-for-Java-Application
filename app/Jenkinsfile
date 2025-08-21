@@ -150,7 +150,7 @@ pipeline {
                             git add values.yaml
                             git commit -m "Update Helm chart image tag to ${BUILD_NUMBER} [ci skip]" || echo "No changes to commit"
                             git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git
-                            git push origin master
+                            git push origin main
 
                             echo "🔹 Deploying Helm chart to Kubernetes..."
                             helm upgrade --install $HELM_RELEASE . --namespace $HELM_NAMESPACE
