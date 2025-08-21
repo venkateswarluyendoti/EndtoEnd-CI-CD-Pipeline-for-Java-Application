@@ -13,6 +13,8 @@ pipeline {
         HELM_NAMESPACE = "java-app"
         HELM_CHART_DIR = "springboot-helm-chart"
         ARGOCD_APP_NAME = "java-app"
+        AWS_REGION = "ap-south-1"
+        EKS_CLUSTER = "java-eks"
     }
 
     stages {
@@ -72,7 +74,6 @@ pipeline {
                         mv ./bin/trivy /usr/local/bin/trivy
                         rm -rf ./bin
                     fi
-
                     trivy --version
                 '''
             }
@@ -132,10 +133,9 @@ pipeline {
             }
         }
 
-        stage('Update Helm Chart & Deploy') {
+        stage('Update Helm Chart & Deploy to EKS') {
             steps {
                 withCredentials([
-                    file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG'),
                     usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')
                 ]) {
                     dir("${HELM_CHART_DIR}") {
@@ -152,8 +152,11 @@ pipeline {
                             git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git
                             git push origin main
 
-                            echo "🔹 Deploying Helm chart to Kubernetes..."
-                            helm upgrade --install $HELM_RELEASE . --namespace $HELM_NAMESPACE
+                            echo "🔹 Configuring kubeconfig for EKS..."
+                            aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER
+
+                            echo "🔹 Deploying Helm chart to EKS..."
+                            helm upgrade --install $HELM_RELEASE . --namespace $HELM_NAMESPACE --create-namespace
                         """
                     }
                 }
@@ -162,12 +165,10 @@ pipeline {
 
         stage('Sync ArgoCD App') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG')]) {
-                    sh """
-                        echo "🔹 Syncing ArgoCD Application..."
-                        argocd app sync $ARGOCD_APP_NAME --kubeconfig $KUBECONFIG --retry
-                    """
-                }
+                sh """
+                    echo "🔹 Syncing ArgoCD Application..."
+                    argocd app sync $ARGOCD_APP_NAME --retry
+                """
             }
         }
     }
