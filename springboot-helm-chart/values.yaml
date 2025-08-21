@@ -1,8 +1,8 @@
 replicaCount: 2
 
 image:
-  repository: docker.io/venkatesh384/java-cicd-app
-  tag: latest   # Jenkins will override this
+  repository: venkatesh384/java-cicd-app
+  tag: 21
   pullPolicy: IfNotPresent
 
 serviceAccount:
