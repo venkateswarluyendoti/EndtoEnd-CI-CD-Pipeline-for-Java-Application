@@ -9,13 +9,17 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
         DOCKER_IMAGE = "venkatesh384/java-cicd-app"
+        HELM_RELEASE = "java-app"
+        HELM_NAMESPACE = "java-app"
+        HELM_CHART_DIR = "springboot-helm-chart"
+        ARGOCD_APP_NAME = "java-app"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git branch: 'master',
+                git branch: 'main',
                     url: 'https://github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git'
             }
         }
@@ -99,7 +103,7 @@ pipeline {
             }
         }
 
-        stage('Install kubectl & ArgoCD CLI') {
+        stage('Install kubectl, Helm & ArgoCD CLI') {
             steps {
                 sh '''
                     echo "🔹 Installing kubectl..."
@@ -107,6 +111,11 @@ pipeline {
                         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                         chmod +x kubectl
                         mv kubectl /usr/local/bin/
+                    fi
+
+                    echo "🔹 Installing Helm..."
+                    if ! command -v helm &> /dev/null; then
+                        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
                     fi
 
                     echo "🔹 Installing Argo CD CLI..."
@@ -117,33 +126,47 @@ pipeline {
                     fi
 
                     kubectl version --client
+                    helm version
                     argocd version --client
                 '''
             }
         }
 
-        stage('Apply Kubernetes Manifests (GitOps Style)') {
+        stage('Update Helm Chart & Deploy') {
             steps {
                 withCredentials([
                     file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG'),
                     usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')
                 ]) {
-                    dir('k8s') {
-                        sh '''
-                            echo "🔹 Updating Kubernetes manifests with new image tag..."
-                            sed -i "s|image: venkatesh384/java-cicd-app:.*|image: venkatesh384/java-cicd-app:${BUILD_NUMBER}|g" deployment.yaml
+                    dir("${HELM_CHART_DIR}") {
+                        sh """
+                            echo "🔹 Updating Helm chart with new image tag..."
+                            sed -i "s|repository: .*\$|repository: $DOCKER_IMAGE|" values.yaml
+                            sed -i "s|tag: .*\$|tag: ${BUILD_NUMBER}|" values.yaml
 
-                            echo "🔹 Committing changes to Git repo..."
+                            echo "🔹 Committing updated Helm chart..."
                             git config user.name "venkateswarluyendoti"
                             git config user.email "venkateswarlu.yendoti99@gmail.com"
-                            git add deployment.yaml
-                            git commit -m "Update image to venkatesh384/java-cicd-app:${BUILD_NUMBER} [ci skip]" || echo "No changes to commit"
-
-                            echo "🔹 Pushing changes to GitHub..."
+                            git add values.yaml
+                            git commit -m "Update Helm chart image tag to ${BUILD_NUMBER} [ci skip]" || echo "No changes to commit"
                             git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git
                             git push origin master
-                        '''
+
+                            echo "🔹 Deploying Helm chart to Kubernetes..."
+                            helm upgrade --install $HELM_RELEASE . --namespace $HELM_NAMESPACE
+                        """
                     }
+                }
+            }
+        }
+
+        stage('Sync ArgoCD App') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG')]) {
+                    sh """
+                        echo "🔹 Syncing ArgoCD Application..."
+                        argocd app sync $ARGOCD_APP_NAME --kubeconfig $KUBECONFIG --retry
+                    """
                 }
             }
         }
