@@ -43,7 +43,7 @@ pipeline {
                                 mvn clean verify sonar:sonar \
                                 -Dsonar.projectKey=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
                                 -Dsonar.projectName=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
-                                -Dsonar.host.url=http://3.81.58.255:9000 \
+                                -Dsonar.host.url=http://54.162.58.68:9000 \
                                 -Dsonar.token=$SONAR_TOKEN
                             '''
                         }
