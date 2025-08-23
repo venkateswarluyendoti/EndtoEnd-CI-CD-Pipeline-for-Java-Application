@@ -5,22 +5,22 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
+  # Git repo where your Helm chart is stored
   source:
     repoURL: 'https://github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git'
     targetRevision: main
-    path: springboot-app         # Path to your Helm chart
+    path: springboot-helm-chart      # folder containing Chart.yaml & templates
     helm:
-      releaseName: java-app
+      releaseName: java-app          # Helm release name
+
+  # Kubernetes cluster & namespace for deployment
   destination:
     server: https://kubernetes.default.svc
-    namespace: java-app          # Namespace where the app will be deployed
+    namespace: java-app
+
+  # Automated sync configuration
   syncPolicy:
     automated:
-      prune: true
-      selfHeal: true
-    retry:
-      limit: 5
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m
+      prune: true       # Delete resources not in Git
+      selfHeal: true    # Fix out-of-sync resources automatically

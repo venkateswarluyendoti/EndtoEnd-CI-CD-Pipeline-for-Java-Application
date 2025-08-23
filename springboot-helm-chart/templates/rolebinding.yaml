@@ -4,7 +4,7 @@ metadata:
   name: {{ .Release.Name }}-deployer-binding
   namespace: {{ .Values.namespace.name }}
   labels:
-    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/name: {{ include "springboot-app.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
