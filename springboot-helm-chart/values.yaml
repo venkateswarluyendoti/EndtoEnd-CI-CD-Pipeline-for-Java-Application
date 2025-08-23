@@ -9,7 +9,7 @@ serviceAccount:
   name: java-cicd-deployer
 
 service:
-  type: ClusterIP        # Service behind Ingress should be ClusterIP, not LoadBalancer
+  type: LoadBalancer
   port: 80
   targetPort: 8080
 
@@ -23,10 +23,7 @@ resources:
 
 ingress:
   enabled: true
-  host: java-app.example.com   # Replace with your domain or EKS NLB DNS
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/rewrite-target: /
+  host: java-app-new.local
 
 namespace:
   name: java-app

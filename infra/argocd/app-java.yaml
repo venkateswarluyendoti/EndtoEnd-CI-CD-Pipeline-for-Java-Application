@@ -6,17 +6,21 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/venky2350/Springboot-cicd-on-k8s.git'
+    repoURL: 'https://github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git'
     targetRevision: main
-    path: springboot-helm-chart
+    path: springboot-app         # Path to your Helm chart
     helm:
       releaseName: java-app
   destination:
     server: https://kubernetes.default.svc
-    namespace: java-app
+    namespace: java-app          # Namespace where the app will be deployed
   syncPolicy:
     automated:
-      selfHeal: true
       prune: true
-    syncOptions:
-      - CreateNamespace=true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

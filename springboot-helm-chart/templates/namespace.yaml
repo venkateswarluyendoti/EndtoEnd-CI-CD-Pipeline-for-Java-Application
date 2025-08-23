@@ -1,3 +1,4 @@
+{{- if .Values.namespace.name }}
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -5,3 +6,4 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ include "springboot-app.name" . }}
     app.kubernetes.io/part-of: end-to-end-java-cicd
+{{- end }}
