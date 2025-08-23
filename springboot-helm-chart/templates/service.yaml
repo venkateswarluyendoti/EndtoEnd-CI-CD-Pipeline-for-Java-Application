@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: {{ include "springboot-app.fullname" . }}
   namespace: {{ .Values.namespace.name }}
+  labels:
+    app: {{ include "springboot-app.name" . }}
 spec:
   type: {{ .Values.service.type }}
   selector:

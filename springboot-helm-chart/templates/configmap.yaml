@@ -1,0 +1,9 @@
+{{- if .Values.configmap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "springboot-app.fullname" . }}-config
+  namespace: {{ .Values.namespace.name }}
+data:
+  APP_MESSAGE: {{ .Values.configmap.APP_MESSAGE | quote }}
+{{- end }}
