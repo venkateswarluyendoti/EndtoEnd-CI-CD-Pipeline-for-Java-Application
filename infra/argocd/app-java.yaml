@@ -7,13 +7,13 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/venky2350/Springboot-cicd-on-k8s.git'
-    targetRevision: HEAD
+    targetRevision: main
     path: springboot-helm-chart
     helm:
       releaseName: java-app
   destination:
     server: https://kubernetes.default.svc
-    namespace: default
+    namespace: java-app
   syncPolicy:
     automated:
       selfHeal: true
