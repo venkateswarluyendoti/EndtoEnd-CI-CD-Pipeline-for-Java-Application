@@ -15,6 +15,7 @@ pipeline {
         ARGOCD_APP_NAME = "java-app"
         AWS_REGION = "ap-south-1"
         EKS_CLUSTER = "java-eks"
+        ARGOCD_SERVER = "13.217.118.188:31163"
     }
 
     stages {
@@ -183,16 +184,16 @@ pipeline {
         stage('Sync ArgoCD App') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'argocd-creds', usernameVariable: 'ARGOCD_USER', passwordVariable: 'ARGOCD_PASS')]) {
-                    sh """
+                    sh '''
                         echo "🔹 Logging into ArgoCD..."
-                        argocd login 13.217.118.188:31163 \
+                        argocd login $ARGOCD_SERVER \
                         --username $ARGOCD_USER \
                         --password $ARGOCD_PASS \
                         --insecure
 
                         echo "🔹 Syncing ArgoCD Application..."
-                        argocd app sync java-app --prune --auth-token $ARGOCD_PASS
-                    """
+                        argocd app sync $ARGOCD_APP_NAME --prune
+                    '''
                 }
             }
         }
