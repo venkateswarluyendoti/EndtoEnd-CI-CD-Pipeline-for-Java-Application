@@ -104,14 +104,14 @@ pipeline {
             }
         }
 
-        stage('Install kubectl, Helm, ArgoCD & AWS CLI') {
+        stage('Install AWS CLI, kubectl, Helm & ArgoCD CLI') {
             steps {
                 sh '''
                     echo "🔹 Installing AWS CLI..."
                     if ! command -v aws &> /dev/null; then
                         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                        unzip awscliv2.zip
-                        ./aws/install
+                        unzip -o awscliv2.zip
+                        ./aws/install --update
                         rm -rf aws awscliv2.zip
                     fi
                     aws --version
@@ -120,7 +120,7 @@ pipeline {
                     if ! command -v kubectl &> /dev/null; then
                         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                         chmod +x kubectl
-                        mv kubectl /usr/local/bin/
+                        sudo mv kubectl /usr/local/bin/
                     fi
 
                     echo "🔹 Installing Helm..."
@@ -132,7 +132,7 @@ pipeline {
                     if ! command -v argocd &> /dev/null; then
                         curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
                         chmod +x argocd
-                        mv argocd /usr/local/bin/
+                        sudo mv argocd /usr/local/bin/
                     fi
 
                     kubectl version --client
