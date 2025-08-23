@@ -9,9 +9,9 @@ serviceAccount:
   name: java-cicd-deployer
 
 service:
-  type: NodePort
-  port: 8080
-  nodePort: 30090
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
 
 resources:
   requests:
@@ -23,7 +23,7 @@ resources:
 
 ingress:
   enabled: true
-  host: java-app-new.local   # for Ingress (optional)
+  host: java-app-new.local   # optional, can be ignored if only using ELB
 
 namespace:
   name: java-app

@@ -1,6 +1,5 @@
 apiVersion: v2
-name: springboot-helm-chart
-description: A Helm chart for deploying Java CICD Spring Boot app
-type: application
+name: springboot-app
+description: Spring Boot app deployment on EKS
 version: 0.1.0
 appVersion: "1.0"
