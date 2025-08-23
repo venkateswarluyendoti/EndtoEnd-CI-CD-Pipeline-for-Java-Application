@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: venkatesh384/java-cicd-app
-  tag: 21
+  tag: 23
   pullPolicy: IfNotPresent
 
 serviceAccount:
