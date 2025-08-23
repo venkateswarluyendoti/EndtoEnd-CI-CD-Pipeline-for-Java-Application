@@ -188,7 +188,8 @@ pipeline {
                         argocd login 13.217.118.188:31163 --username $ARGOCD_USER --password $ARGOCD_PASS --insecure
 
                         echo "🔹 Syncing ArgoCD Application..."
-                        argocd app sync $ARGOCD_APP_NAME --retry
+                        argocd app sync $ARGOCD_APP_NAME --prune
+
                     """
                 }
             }
