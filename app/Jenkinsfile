@@ -191,8 +191,7 @@ pipeline {
                         --insecure
 
                         echo "🔹 Syncing ArgoCD Application..."
-                        argocd app sync $ARGOCD_APP_NAME --prune
-
+                        argocd app sync java-app --prune --auth-token $ARGOCD_PASS
                     """
                 }
             }
