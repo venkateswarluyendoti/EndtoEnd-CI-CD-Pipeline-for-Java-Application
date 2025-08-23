@@ -1,7 +1,9 @@
+{{/* Define chart name */}}
 {{- define "springboot-app.name" -}}
-springboot-app
+{{ .Chart.Name }}
 {{- end -}}
 
+{{/* Define full name for resources */}}
 {{- define "springboot-app.fullname" -}}
-{{ .Release.Name }}-springboot-app
+{{ .Release.Name }}-{{ .Chart.Name }}
 {{- end -}}

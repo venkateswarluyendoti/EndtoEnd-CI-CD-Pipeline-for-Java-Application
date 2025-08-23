@@ -23,7 +23,7 @@ resources:
 
 ingress:
   enabled: true
-  host: java-app-new.local   # optional, can be ignored if only using ELB
+  host: java-app-new.local
 
 namespace:
   name: java-app

@@ -58,7 +58,7 @@ pipeline {
             steps {
                 dir('app') {
                     sh """
-                        docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile . 
+                        docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile .
                         docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
                     """
                 }
@@ -71,6 +71,7 @@ pipeline {
                     echo "🔹 Installing Trivy..."
                     if ! command -v trivy &> /dev/null; then
                         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                        mkdir -p /usr/local/bin
                         mv ./bin/trivy /usr/local/bin/trivy
                         rm -rf ./bin
                     fi
@@ -150,6 +151,7 @@ pipeline {
                 ]) {
                     dir("${HELM_CHART_DIR}") {
                         sh """
+                            set -e
                             echo "🔹 Updating Helm chart with new image tag..."
                             sed -i "s|repository: .*\$|repository: $DOCKER_IMAGE|" values.yaml
                             sed -i "s|tag: .*\$|tag: ${BUILD_NUMBER}|" values.yaml
@@ -162,10 +164,13 @@ pipeline {
                             git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git
                             git push origin main
 
-                            echo "🔹 Configuring kubeconfig for EKS..."
-                            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                            aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER
+                            echo "🔹 Configuring AWS CLI..."
+                            export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+                            export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+                            export AWS_DEFAULT_REGION="$AWS_REGION"
+
+                            echo "🔹 Updating kubeconfig for EKS..."
+                            aws eks update-kubeconfig --name $EKS_CLUSTER
 
                             echo "🔹 Deploying Helm chart to EKS..."
                             helm upgrade --install $HELM_RELEASE . --namespace $HELM_NAMESPACE --create-namespace
@@ -177,10 +182,15 @@ pipeline {
 
         stage('Sync ArgoCD App') {
             steps {
-                sh """
-                    echo "🔹 Syncing ArgoCD Application..."
-                    argocd app sync $ARGOCD_APP_NAME --retry
-                """
+                withCredentials([usernamePassword(credentialsId: 'argocd-creds', usernameVariable: 'ARGOCD_USER', passwordVariable: 'ARGOCD_PASS')]) {
+                    sh """
+                        echo "🔹 Logging into ArgoCD..."
+                        argocd login <ARGOCD_SERVER_URL> --username $ARGOCD_USER --password $ARGOCD_PASS --insecure
+
+                        echo "🔹 Syncing ArgoCD Application..."
+                        argocd app sync $ARGOCD_APP_NAME --retry
+                    """
+                }
             }
         }
     }
