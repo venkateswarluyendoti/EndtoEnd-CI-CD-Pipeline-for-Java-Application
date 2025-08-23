@@ -182,20 +182,22 @@ pipeline {
         }
 
         stage('ArgoCD Login & Sync') {
-    steps {
-        withCredentials([usernamePassword(credentialsId: 'argocd-creds', 
-        usernameVariable: 'ARGOCD_USER', 
-        passwordVariable: 'ARGOCD_PASS')]) {
-        sh '''
-                echo "🔹 Logging in to ArgoCD..."
-                argocd login 13.217.118.188:31605 --username $ARGOCD_USER --password $ARGOCD_PASS --insecure
-                
-                echo "🔹 Syncing ArgoCD Application..."
-                argocd app sync java-app --prune
-            '''
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'argocd-creds', 
+                                                usernameVariable: 'ARGOCD_USER', 
+                                                passwordVariable: 'ARGOCD_PASS')]) {
+                    sh '''
+                        echo "🔹 Logging in to ArgoCD..."
+                        argocd login 13.217.118.188:31605 --username $ARGOCD_USER --password $ARGOCD_PASS --insecure
+                        
+                        echo "🔹 Syncing ArgoCD Application..."
+                        argocd app sync java-app --prune
+                    '''
+                }
+            }
         }
     }
-}
+
     post {
         success {
             echo "✅ Jenkins Pipeline SUCCESS: Job ${env.JOB_NAME}, Build #${env.BUILD_NUMBER}"
