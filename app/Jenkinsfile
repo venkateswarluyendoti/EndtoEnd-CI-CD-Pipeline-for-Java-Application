@@ -12,10 +12,8 @@ pipeline {
         HELM_RELEASE = "java-app"
         HELM_NAMESPACE = "java-app"
         HELM_CHART_DIR = "springboot-helm-chart"
-        ARGOCD_APP_NAME = "java-app"
         AWS_REGION = "ap-south-1"
         EKS_CLUSTER = "java-eks"
-        ARGOCD_SERVER = "13.217.118.188:31163"
     }
 
     stages {
@@ -106,7 +104,7 @@ pipeline {
             }
         }
 
-        stage('Install AWS CLI, kubectl, Helm & ArgoCD CLI') {
+        stage('Install AWS CLI, kubectl, Helm') {
             steps {
                 sh '''
                     echo "🔹 Installing AWS CLI..."
@@ -130,16 +128,8 @@ pipeline {
                         curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
                     fi
 
-                    echo "🔹 Installing Argo CD CLI..."
-                    if ! command -v argocd &> /dev/null; then
-                        curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-                        chmod +x argocd
-                        mv argocd /usr/local/bin/
-                    fi
-
                     kubectl version --client
                     helm version
-                    argocd version --client
                 '''
             }
         }
@@ -177,22 +167,6 @@ pipeline {
                             helm upgrade --install $HELM_RELEASE . --namespace $HELM_NAMESPACE --create-namespace
                         """
                     }
-                }
-            }
-        }
-
-        stage('ArgoCD Login & Sync') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'argocd-creds', 
-                                                usernameVariable: 'ARGOCD_USER', 
-                                                passwordVariable: 'ARGOCD_PASS')]) {
-                    sh '''
-                        echo "🔹 Logging in to ArgoCD..."
-                        argocd login 13.217.118.188:31605 --username $ARGOCD_USER --password $ARGOCD_PASS --insecure
-                        
-                        echo "🔹 Syncing ArgoCD Application..."
-                        argocd app sync java-app --prune
-                    '''
                 }
             }
         }
