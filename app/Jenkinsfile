@@ -145,7 +145,8 @@ pipeline {
         stage('Update Helm Chart & Deploy to EKS') {
             steps {
                 withCredentials([
-                    usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')
+                    usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS'),
+                    usernamePassword(credentialsId: 'aws-creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     dir("${HELM_CHART_DIR}") {
                         sh """
@@ -162,6 +163,8 @@ pipeline {
                             git push origin main
 
                             echo "🔹 Configuring kubeconfig for EKS..."
+                            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                             aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER
 
                             echo "🔹 Deploying Helm chart to EKS..."
