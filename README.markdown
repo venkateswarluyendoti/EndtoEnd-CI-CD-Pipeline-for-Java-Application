@@ -36,6 +36,7 @@ The pipeline automates the process from code commit to deployment:
 - **Minikube**: Uses raw Kubernetes manifests for local development, deployed via ArgoCD on an EC2 instance.
 - **EKS**: Uses Helm charts for production-grade deployment on AWS EKS, managed via ArgoCD and Jenkins.
 
+<img width="1536" height="1024" alt="CI_CD pipeline architecture" src="https://github.com/user-attachments/assets/c0b9bf7d-1200-41ce-8713-2394791ba5d1" />
 
 
 ## Prerequisites
@@ -109,6 +110,11 @@ EndtoEnd-CI-CD-Pipeline-for-Java-Application/
 ## Deployment Methods
 
 ### Method 1: Minikube Deployment (Without Helm)
+
+## Architecture 
+
+<img width="1536" height="1024" alt="CI_CD pipeline architecture with minikube" src="https://github.com/user-attachments/assets/696c6d13-7161-4d0a-a7bd-a7e0c8d36a83" />
+
 
 #### EC2 Instance Setup
 1. **Launch EC2 Instance**
@@ -341,6 +347,12 @@ kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n a
 - Expected Output: `Hello from the End-to-End CI/CD Pipeline Java Application!`
 
 ### Method 2: AWS EKS Deployment (With Helm and ArgoCD)
+
+## Architecture
+
+<img width="1536" height="1024" alt="CI_CD pipeline architecture using EKS with Helm,ArgoCD" src="https://github.com/user-attachments/assets/fbf7f1ae-b673-4009-b905-1591352dd889" />
+
+
 
 #### AWS CLI and IAM Setup
 1. **Create IAM User**
@@ -798,7 +810,7 @@ pipeline {
 1. **Infrastructure as Code**: Use Terraform/CloudFormation for provisioning.
 2. **Advanced GitOps**: Implement Canary/Blue-Green deployments with ArgoCD Rollouts.
 3. **Monitoring**: Add Prometheus, Grafana, and ELK/EFK for observability.
-4. **Security**: Extend Trivy scans, use OPA/Kyverno for policies, integrate HashiCorp Vault.
+4. **Security**: Extend Trivy scans, use OPA/Kyverno for policies, and integrate HashiCorp Vault.
 5. **Scalability**: Configure HPA, Cluster Autoscaler, and multi-region deployments.
 6. **Performance**: Add JMeter/k6 testing and SonarQube Quality Gates.
 7. **Multi-Environment**: Support Dev/QA/Staging/Production with Helm/Kustomize.
@@ -810,21 +822,12 @@ pipeline {
 1. **Setup Environment**: Provision EC2, configure AWS CLI (EKS) or Minikube.
 2. **Build Application**: Clone repo, use Maven to build Spring Boot app.
 3. **Code Quality**: Run SonarQube analysis in Jenkins pipeline.
-4. **Containerization**: Build and push Docker image to DockerHub.
+4. **Containerization**: Build and push a Docker image to DockerHub.
 5. **Security**: Scan image with Trivy for vulnerabilities.
 6. **Deployment**: Deploy via raw manifests (Minikube) or Helm charts (EKS) using ArgoCD.
-7. **Verification**: Check pods, services, and access application.
+7. **Verification**: Check pods, services, and the access application.
 8. **Automation**: Jenkins pipeline automates all steps, with GitOps for deployment updates.
 
 ---
-
-**Analysis**
-
-The merged README combines two deployment approaches—Minikube (without Helm) and EKS (with Helm and ArgoCD)—into a single, cohesive document. Key considerations:
-- **No Conflicts**: Both methods are clearly separated, with distinct sections for Minikube and EKS, ensuring users can follow their preferred approach without confusion.
-- **Repetition Handling**: Overlapping content (e.g., project structure, Jenkins pipeline, SonarQube, Trivy) was consolidated, with differences highlighted (e.g., Minikube uses NodePort, EKS uses LoadBalancer).
-- **User Choice**: The structure allows users to choose Minikube for local development or EKS for production, with all prerequisites, steps, and troubleshooting provided.
-- **GitHub-Friendly**: Markdown tables, clear headings, and code blocks ensure readability and usability in a repository.
-- **Completeness**: Includes all critical components—EC2 setup, Dockerization, Jenkins pipeline, ArgoCD, and troubleshooting—while addressing achievements and future enhancements.
 
 This README provides a robust, flexible guide for deploying a Spring Boot application, suitable for both local and cloud environments.
