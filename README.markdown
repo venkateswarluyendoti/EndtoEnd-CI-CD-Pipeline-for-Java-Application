@@ -36,7 +36,7 @@ The pipeline automates the process from code commit to deployment:
 - **Minikube**: Uses raw Kubernetes manifests for local development, deployed via ArgoCD on an EC2 instance.
 - **EKS**: Uses Helm charts for production-grade deployment on AWS EKS, managed via ArgoCD and Jenkins.
 
-![Architecture Diagram](https://github.com/user-attachments/assets/3ba75467-6777-4ccf-b3c4-1daa26b740ce)
+
 
 ## Prerequisites
 
