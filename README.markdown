@@ -587,23 +587,41 @@ Access: `http://<springboot-ELB-DNS>.ap-south-1.elb.amazonaws.com`
 ```groovy
 pipeline {
     agent any
-    environment {
-        AWS_REGION = 'ap-south-1'
-        EKS_CLUSTER = 'java-eks'
+
+    tools {
+        maven 'Maven 3.8.7'
+        jdk 'JDK 17'
     }
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
+        DOCKER_IMAGE = "venkatesh384/java-cicd-app"
+        HELM_RELEASE = "java-app"
+        HELM_NAMESPACE = "java-app"
+        HELM_CHART_DIR = "springboot-helm-chart"
+        AWS_REGION = "ap-south-1"
+        EKS_CLUSTER = "java-eks"
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
-                git branch: 'main', credentialsId: 'github-creds', url: 'https://github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git'
+                git branch: 'main',
+                    url: 'https://github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git'
             }
         }
-        stage('Maven Build') {
+
+        stage('Build with Maven') {
             steps {
+                sh 'mvn --version'
+                sh 'java -version'
                 dir('app') {
                     sh 'mvn clean package -DskipTests'
                 }
             }
         }
+
         stage('SonarQube Analysis') {
             steps {
                 dir('app') {
@@ -613,7 +631,7 @@ pipeline {
                                 mvn clean verify sonar:sonar \
                                 -Dsonar.projectKey=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
                                 -Dsonar.projectName=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
-                                -Dsonar.host.url=http://<sonarqube-ip>:9000 \
+                                -Dsonar.host.url=http://13.217.118.188:9000 \
                                 -Dsonar.token=$SONAR_TOKEN
                             '''
                         }
@@ -621,11 +639,25 @@ pipeline {
                 }
             }
         }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('app') {
+                    sh """
+                        docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile .
+                        docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
+                    """
+                }
+            }
+        }
+
         stage('Install Trivy') {
             steps {
                 sh '''
+                    echo "🔹 Installing Trivy..."
                     if ! command -v trivy &> /dev/null; then
                         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                        mkdir -p /usr/local/bin
                         mv ./bin/trivy /usr/local/bin/trivy
                         rm -rf ./bin
                     fi
@@ -633,85 +665,110 @@ pipeline {
                 '''
             }
         }
+
         stage('Trivy Security Scan') {
             steps {
-                sh '''
-                    trivy image --severity HIGH,CRITICAL --format table --output trivy-report.txt venkatesh384/java-cicd-app:$BUILD_NUMBER
-                '''
-                archiveArtifacts artifacts: 'trivy-report.txt', allowEmptyArchive: true
-            }
-        }
-        stage('Docker Build & Push') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                dir('app') {
                     sh '''
-                        docker build -t venkatesh384/java-cicd-app:$BUILD_NUMBER -f app/docker/Dockerfile .
-                        docker tag venkatesh384/java-cicd-app:$BUILD_NUMBER venkatesh384/java-cicd-app:latest
-                        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                        docker push venkatesh384/java-cicd-app:$BUILD_NUMBER
-                        docker push venkatesh384/java-cicd-app:latest
+                        echo "🔹 Running Trivy scan on image..."
+                        trivy image --exit-code 0 --severity LOW,MEDIUM,HIGH,CRITICAL $DOCKER_IMAGE:${BUILD_NUMBER} > trivy-report.txt
+                        trivy image --exit-code 1 --severity CRITICAL $DOCKER_IMAGE:${BUILD_NUMBER} || true
+                        cat trivy-report.txt
                     '''
                 }
             }
         }
-        stage('Install Tools') {
+
+        stage('Push to DockerHub') {
+            steps {
+                dir('app') {
+                    sh """
+                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                        docker push $DOCKER_IMAGE:${BUILD_NUMBER}
+                        docker push $DOCKER_IMAGE:latest
+                    """
+                }
+            }
+        }
+
+        stage('Install AWS CLI, kubectl, Helm') {
             steps {
                 sh '''
-                    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                    unzip -o awscliv2.zip && sudo ./aws/install && rm -rf awscliv2.zip
+                    echo "🔹 Installing AWS CLI..."
+                    if ! command -v aws &> /dev/null; then
+                        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                        unzip -o awscliv2.zip
+                        ./aws/install --update
+                        rm -rf aws awscliv2.zip
+                    fi
                     aws --version
-                    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                    chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+
+                    echo "🔹 Installing kubectl..."
+                    if ! command -v kubectl &> /dev/null; then
+                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                        chmod +x kubectl
+                        mv kubectl /usr/local/bin/
+                    fi
+
+                    echo "🔹 Installing Helm..."
+                    if ! command -v helm &> /dev/null; then
+                        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+                    fi
+
                     kubectl version --client
-                    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
                     helm version
                 '''
             }
         }
-        stage('Configure AWS EKS Kubeconfig') {
+
+        stage('Update Helm Chart & Deploy to EKS') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'aws-creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    sh '''
-                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                        export AWS_DEFAULT_REGION=$AWS_REGION
-                        aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER
-                        kubectl get nodes
-                    '''
-                }
-            }
-        }
-        stage('Helm Deployment') {
-            steps {
-                sh '''
-                    sed -i "s|tag:.*|tag: $BUILD_NUMBER|" springboot-helm-chart/values.yaml
-                    helm upgrade --install java-app ./springboot-helm-chart --namespace java-app --create-namespace
-                '''
-            }
-        }
-        stage('Commit Helm Updates') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_TOKEN')]) {
-                    sh '''
-                        git config user.name "jenkins-user"
-                        git config user.email "jenkins@example.com"
-                        git add springboot-helm-chart/values.yaml
-                        git commit -m "Update Helm image tag $BUILD_NUMBER"
-                        git push https://$GIT_USERNAME:$GIT_TOKEN@github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git main
-                    '''
+                withCredentials([
+                    usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS'),
+                    usernamePassword(credentialsId: 'aws-creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    dir("${HELM_CHART_DIR}") {
+                        sh """
+                            set -e
+                            echo "🔹 Updating Helm chart with new image tag..."
+                            sed -i "s|repository: .*\$|repository: $DOCKER_IMAGE|" values.yaml
+                            sed -i "s|tag: .*\$|tag: ${BUILD_NUMBER}|" values.yaml
+
+                            echo "🔹 Committing updated Helm chart..."
+                            git config user.name "venkateswarluyendoti"
+                            git config user.email "venkateswarlu.yendoti99@gmail.com"
+                            git add values.yaml
+                            git commit -m "Update Helm chart image tag to ${BUILD_NUMBER} [ci skip]" || echo "No changes to commit"
+                            git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git
+                            git push origin main
+
+                            echo "🔹 Configuring AWS CLI..."
+                            export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+                            export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+                            export AWS_DEFAULT_REGION="$AWS_REGION"
+
+                            echo "🔹 Updating kubeconfig for EKS..."
+                            aws eks update-kubeconfig --name $EKS_CLUSTER
+
+                            echo "🔹 Deploying Helm chart to EKS..."
+                            helm upgrade --install $HELM_RELEASE . --namespace $HELM_NAMESPACE --create-namespace
+                        """
+                    }
                 }
             }
         }
     }
+
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo "✅ Jenkins Pipeline SUCCESS: Job ${env.JOB_NAME}, Build #${env.BUILD_NUMBER}"
         }
         failure {
-            echo 'Pipeline failed. Check logs for details.'
+            echo "❌ Jenkins Pipeline FAILED: Job ${env.JOB_NAME}, Build #${env.BUILD_NUMBER}"
         }
     }
 }
+
 ```
 
 ## Troubleshooting
