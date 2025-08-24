@@ -335,7 +335,7 @@ ID: dockerhub-creds
 
 Username & password from DockerHub account
 
-Create Jenkins credentials for GitHub if repo is private.
+Create Jenkins credentials for GitHub if the repo is private.
 
 Configure SonarQube server in Jenkins → Manage Jenkins → Configure System.
 ```
@@ -441,7 +441,7 @@ stage('SonarQube Analysis') {
 
 # Part 5 – Local Test (without Jenkins)
 ```bash
-# Install sonar scanner locally
+# Install Sonar Scanner locally
 brew install sonar-scanner  # Mac
 sudo apt install sonar-scanner-cli -y  # Ubuntu
 
@@ -480,21 +480,19 @@ kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n a
 **Handling connection for 30081**
 **Handling connection for 30081**
 
-<<<<<<< HEAD
-
 Run application on browser:-
 ----------------------------
-ubuntu@ip-172-31-39-62:~/EndtoEnd-CI-CD-Pipeline-for-Java-Application/k8s$ kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n argocd
-Forwarding from 0.0.0.0:30081 -> 8080
-Handling connection for 30081
-Handling connection for 30081 
+* ubuntu@ip-172-31-39-62:~/EndtoEnd-CI-CD-Pipeline-for-Java-Application/k8s$ 
+```bash
+kubectl port-forward --address 0.0.0.0 service/java-cicd-service 30081:8080 -n argocd
+```
+* Forwarding from 0.0.0.0:30081 -> 8080
+* Handling connection for 30081
+* Handling connection for 30081 
 
-
-Output:-
---------
+Output:
+---------
 Hello from the End-to-End CI/CD Pipeline Java Application!
 =======
-# Output:-
-  --------
-**Hello from the End-to-End CI/CD Pipeline Java Application!**
->>>>>>> master
+
+
