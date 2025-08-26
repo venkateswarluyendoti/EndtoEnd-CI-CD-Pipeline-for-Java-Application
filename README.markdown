@@ -118,7 +118,7 @@ EndtoEnd-CI-CD-Pipeline-for-Java-Application/
 
 #### EC2 Instance Setup
 1. **Launch EC2 Instance**
-   - Name: `EndtoEnd-CI-CD-Pipeline-for-Java-Application`
+   - Name: `End-to-End-CI-CD-Pipeline-for-Java-Application`
    - AMI: Ubuntu 24.04
    - Instance Type: `t2.large`
    - Key Pair: Create `Prometheus.pem`
