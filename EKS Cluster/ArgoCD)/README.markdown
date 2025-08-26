@@ -146,6 +146,7 @@ curl http://<nginx-ELB-DNS>
 
 <img width="1920" height="1080" alt="Screenshot (223)" src="https://github.com/user-attachments/assets/af4d4abb-9287-4871-8306-2f4bd13b7b9e" />
 
+<img width="1916" height="564" alt="image" src="https://github.com/user-attachments/assets/4cad9a33-8594-45e1-8c86-621ae5b33cab" />
 
 
 ## Helm Chart Structure
@@ -240,6 +241,11 @@ kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.pas
 ```
 - Username: `admin`
 - Password: Output from above command
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b65d7818-6438-4929-963d-0eac7ebb6eea" />
+
+
+
 
 ### Step 3: Deploy Application
 **argocd-helm-app.yaml**
