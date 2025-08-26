@@ -109,6 +109,13 @@ eksctl create cluster \
 - Updates `~/.kube/config`
 - Takes ~15–20 minutes
 
+  <img width="1910" height="289" alt="Screenshot 2025-08-23 102344" src="https://github.com/user-attachments/assets/ae72e7f0-1ab9-49f0-84b7-730a1fb79b71" />
+
+
+<img width="1920" height="1080" alt="Screenshot (222)" src="https://github.com/user-attachments/assets/0c36e8af-e319-4cbb-a2bb-53a7f735b54f" />
+
+
+
 ### Step 2: Verify Cluster
 ```bash
 eksctl get cluster --region ap-south-1
@@ -121,6 +128,10 @@ ip-192-168-12-34.ap-south-1.compute.internal Ready    <none>   2m      v1.30.x
 ip-192-168-56-78.ap-south-1.compute.internal Ready    <none>   2m      v1.30.x
 ```
 
+<img width="1474" height="116" alt="Screenshot 2025-08-23 102422" src="https://github.com/user-attachments/assets/4cd260ca-8a62-4197-8b85-79d770ee1a5a" />
+
+
+
 ### Step 3: Test with Nginx Deployment
 ```bash
 kubectl create deployment nginx --image=nginx --replicas=2
@@ -128,6 +139,14 @@ kubectl expose deployment nginx --port=80 --type=LoadBalancer
 kubectl get svc nginx
 curl http://<nginx-ELB-DNS>
 ```
+<img width="1911" height="220" alt="Screenshot 2025-08-23 102618" src="https://github.com/user-attachments/assets/a870da07-d6b9-42b3-a9f6-c6fc6ef7d98d" />
+
+<img width="1906" height="318" alt="Screenshot 2025-08-23 102724" src="https://github.com/user-attachments/assets/e50db24c-26ae-4120-a938-58b7b69a1c52" />
+
+
+<img width="1920" height="1080" alt="Screenshot (223)" src="https://github.com/user-attachments/assets/af4d4abb-9287-4871-8306-2f4bd13b7b9e" />
+
+
 
 ## Helm Chart Structure
 
@@ -254,6 +273,11 @@ Apply:
 kubectl apply -f argocd-helm-app.yaml -n argocd
 ```
 
+<img width="1917" height="1079" alt="Screenshot 2025-08-23 185700" src="https://github.com/user-attachments/assets/482ef47f-ba68-4e6c-918a-a55e8e8e7c5f" />
+
+
+
+
 ## Spring Boot Application Deployment
 
 ### Docker Build & Push
@@ -308,6 +332,10 @@ kubectl apply -f springboot-service.yaml
 kubectl get svc springboot-service
 ```
 Access: `http://<springboot-ELB-DNS>.ap-south-1.elb.amazonaws.com`
+
+<img width="1910" height="325" alt="image" src="https://github.com/user-attachments/assets/ecd3c5f0-6fde-466e-babb-f1befd8e60a2" />
+
+
 
 ## Jenkins Pipeline Configuration
 
@@ -423,6 +451,11 @@ pipeline {
     }
 }
 ```
+
+
+<img width="1911" height="783" alt="Screenshot 2025-08-23 161219" src="https://github.com/user-attachments/assets/25011072-ff29-44d4-9042-6103edc164b5" />
+
+
 
 ## Troubleshooting
 
