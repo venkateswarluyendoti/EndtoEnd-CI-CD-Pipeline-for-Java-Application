@@ -1,15 +1,9 @@
-{{- define "springboot-helm-chart.name" -}}
+{{/* Define chart name */}}
+{{- define "springboot-app.name" -}}
 {{ .Chart.Name }}
-{{- end }}
+{{- end -}}
 
-{{- define "springboot-helm-chart.fullname" -}}
+{{/* Define full name for resources */}}
+{{- define "springboot-app.fullname" -}}
 {{ .Release.Name }}-{{ .Chart.Name }}
-{{- end }}
-
-{{- define "springboot-helm-chart.labels" -}}
-helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-app.kubernetes.io/name: {{ include "springboot-helm-chart.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/version: {{ .Chart.AppVersion }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
+{{- end -}}

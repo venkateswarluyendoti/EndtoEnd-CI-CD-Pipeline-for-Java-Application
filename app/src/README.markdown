@@ -326,7 +326,7 @@ root@e2b560aad349:/# curl -v http://34.204.77.57:30441
 
 Solution:
 ---------
-
+```
 The curl output shows that your Argo CD server is reachable, but it’s returning a 307 Temporary Redirect to HTTPS:
 
 < Location: https://34.204.77.57:30441/
@@ -355,12 +355,14 @@ curl -k https://34.204.77.57:30441
 You should get the Argo CD login page HTML.
 
 After that, the pipeline should be able to log in and proceed.
-
+```
 
 Output:
 -------
 
-root@e2b560aad349:/# curl -k https://34.204.77.57:30441
-<!doctype html><html lang="en"><head><meta cha                                         rset="UTF-8"><title>Argo CD</title><base href=                                    "/"><meta name="viewport" content="width=devic                               e-width,initial-scale=1"><link rel="icon" type="image/png" href="assets/favicon/favicon-32x32.png" sizes="32x32"/><link rel="icon" type="image/png" href="assets/favicon/favicon-16x16.png" sizes="16x16"/><link href="assets/fonts.css" rel="stylesheet"><script defer="de-width,initial-scale=1"><link rel="icon" type="image/png" href="assets/favicon/favicon-32x32.png" sizes="32x32"/><link rel="icon" type="image/png" href="assets/favicon/favicon-16x16.png" sizes="16x16"/><link href="assets/fonts.css" rel="stylesheet"><script defer="defer" src="main.6428ac7755a7519079f9.js"></script></head><body><noscript><p>Your browser does not support JavaScript. Please enable JavaScript to view the site. Alternatively, Argo CD can be used with the <a href="https://argoproj.github.io/argo-cd/cli_installation/">Argo CD CLI</a>.</p></noscript><div id="app"></div></body><script defer="defer" src="extensions.js"></script></html>
-=======
->>>>>>> master
+root@e2b560aad349:/# 
+curl -k https://34.204.77.57:30441
+
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Argo CD</title><base href=                                    "/"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/png" href="assets/favicon/favicon-32x32.png" sizes="32x32"/><link rel="icon" type="image/png" href="assets/favicon/favicon-16x16.png" sizes="16x16"/><link href="assets/fonts.css" rel="stylesheet"><script defer="de-width,initial-scale=1"><link rel="icon" type="image/png" href="assets/favicon/favicon-32x32.png" sizes="32x32"/><link rel="icon" type="image/png" href="assets/favicon/favicon-16x16.png" sizes="16x16"/><link href="assets/fonts.css" rel="stylesheet"><script defer="defer" src="main.6428ac7755a7519079f9.js"></script></head><body><noscript><p>Your browser does not support JavaScript. Please enable JavaScript to view the site. Alternatively, Argo CD can be used with the <a href="https://argoproj.github.io/argo-cd/cli_installation/">Argo CD CLI</a>.</p></noscript><div id="app"></div></body><script defer="defer" src="extensions.js"></script></html>
+
+

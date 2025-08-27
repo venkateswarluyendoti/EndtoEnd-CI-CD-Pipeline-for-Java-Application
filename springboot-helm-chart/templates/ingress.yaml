@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "springboot-helm-chart.fullname" . }}
+  name: {{ include "springboot-app.fullname" . }}
   namespace: {{ .Values.namespace.name }}
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
@@ -15,7 +15,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "springboot-helm-chart.fullname" . }}
+                name: {{ include "springboot-app.fullname" . }}
                 port:
                   number: {{ .Values.service.port }}
 {{- end }}

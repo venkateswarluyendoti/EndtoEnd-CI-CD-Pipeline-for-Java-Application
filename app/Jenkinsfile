@@ -9,13 +9,18 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
         DOCKER_IMAGE = "venkatesh384/java-cicd-app"
+        HELM_RELEASE = "java-app"
+        HELM_NAMESPACE = "java-app"
+        HELM_CHART_DIR = "springboot-helm-chart"
+        AWS_REGION = "ap-south-1"
+        EKS_CLUSTER = "java-eks"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git branch: 'master',
+                git branch: 'main',
                     url: 'https://github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git'
             }
         }
@@ -39,7 +44,7 @@ pipeline {
                                 mvn clean verify sonar:sonar \
                                 -Dsonar.projectKey=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
                                 -Dsonar.projectName=EndtoEnd-CI-CD-Pipeline-for-Java-Application \
-                                -Dsonar.host.url=http://3.81.58.255:9000 \
+                                -Dsonar.host.url=http://13.217.118.188:9000 \
                                 -Dsonar.token=$SONAR_TOKEN
                             '''
                         }
@@ -52,7 +57,7 @@ pipeline {
             steps {
                 dir('app') {
                     sh """
-                        docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile . 
+                        docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} -f docker/Dockerfile .
                         docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
                     """
                 }
@@ -65,10 +70,10 @@ pipeline {
                     echo "🔹 Installing Trivy..."
                     if ! command -v trivy &> /dev/null; then
                         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                        mkdir -p /usr/local/bin
                         mv ./bin/trivy /usr/local/bin/trivy
                         rm -rf ./bin
                     fi
-
                     trivy --version
                 '''
             }
@@ -99,9 +104,18 @@ pipeline {
             }
         }
 
-        stage('Install kubectl & ArgoCD CLI') {
+        stage('Install AWS CLI, kubectl, Helm') {
             steps {
                 sh '''
+                    echo "🔹 Installing AWS CLI..."
+                    if ! command -v aws &> /dev/null; then
+                        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                        unzip -o awscliv2.zip
+                        ./aws/install --update
+                        rm -rf aws awscliv2.zip
+                    fi
+                    aws --version
+
                     echo "🔹 Installing kubectl..."
                     if ! command -v kubectl &> /dev/null; then
                         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -109,40 +123,49 @@ pipeline {
                         mv kubectl /usr/local/bin/
                     fi
 
-                    echo "🔹 Installing Argo CD CLI..."
-                    if ! command -v argocd &> /dev/null; then
-                        curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-                        chmod +x argocd
-                        mv argocd /usr/local/bin/
+                    echo "🔹 Installing Helm..."
+                    if ! command -v helm &> /dev/null; then
+                        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
                     fi
 
                     kubectl version --client
-                    argocd version --client
+                    helm version
                 '''
             }
         }
 
-        stage('Apply Kubernetes Manifests (GitOps Style)') {
+        stage('Update Helm Chart & Deploy to EKS') {
             steps {
                 withCredentials([
-                    file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG'),
-                    usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')
+                    usernamePassword(credentialsId: 'github-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS'),
+                    usernamePassword(credentialsId: 'aws-creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
-                    dir('k8s') {
-                        sh '''
-                            echo "🔹 Updating Kubernetes manifests with new image tag..."
-                            sed -i "s|image: venkatesh384/java-cicd-app:.*|image: venkatesh384/java-cicd-app:${BUILD_NUMBER}|g" deployment.yaml
+                    dir("${HELM_CHART_DIR}") {
+                        sh """
+                            set -e
+                            echo "🔹 Updating Helm chart with new image tag..."
+                            sed -i "s|repository: .*\$|repository: $DOCKER_IMAGE|" values.yaml
+                            sed -i "s|tag: .*\$|tag: ${BUILD_NUMBER}|" values.yaml
 
-                            echo "🔹 Committing changes to Git repo..."
+                            echo "🔹 Committing updated Helm chart..."
                             git config user.name "venkateswarluyendoti"
                             git config user.email "venkateswarlu.yendoti99@gmail.com"
-                            git add deployment.yaml
-                            git commit -m "Update image to venkatesh384/java-cicd-app:${BUILD_NUMBER} [ci skip]" || echo "No changes to commit"
-
-                            echo "🔹 Pushing changes to GitHub..."
+                            git add values.yaml
+                            git commit -m "Update Helm chart image tag to ${BUILD_NUMBER} [ci skip]" || echo "No changes to commit"
                             git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/venkateswarluyendoti/EndtoEnd-CI-CD-Pipeline-for-Java-Application.git
-                            git push origin master
-                        '''
+                            git push origin main
+
+                            echo "🔹 Configuring AWS CLI..."
+                            export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+                            export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+                            export AWS_DEFAULT_REGION="$AWS_REGION"
+
+                            echo "🔹 Updating kubeconfig for EKS..."
+                            aws eks update-kubeconfig --name $EKS_CLUSTER
+
+                            echo "🔹 Deploying Helm chart to EKS..."
+                            helm upgrade --install $HELM_RELEASE . --namespace $HELM_NAMESPACE --create-namespace
+                        """
                     }
                 }
             }

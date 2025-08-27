@@ -8,7 +8,8 @@
 ---
 ## 📊 Architecture & Workflow
 
-<img width="1536" height="1024" alt="ChatGPT Image Aug 19, 2025, 02_17_06 PM" src="https://github.com/user-attachments/assets/3ba75467-6777-4ccf-b3c4-1daa26b740ce" />
+<img width="1536" height="1024" alt="CI_CD pipeline architecture with minikube" src="https://github.com/user-attachments/assets/a2531009-af96-4994-8de6-0aa5b24409c6" />
+
 
 ## **Module 1 – AWS EC2 Instance Setup**
 
@@ -55,25 +56,77 @@ ubuntu@ip-172-31-39-62:~$
 
 ## **Module 2 – Project Folder Structure**
 ```bash
-EndtoEnd-CI-CD-Pipeline-for-Java-Application/
+.
+├── README.md
 ├── app
 │   ├── Jenkinsfile
 │   ├── README.md
-│   ├── docker/Dockerfile
-│   ├── helm/java-cicd-app/...
+│   ├── docker
+│   │   └── Dockerfile
 │   ├── pom.xml
-│   ├── src/...
-│   └── target/...
-└── k8s
-    ├── argocd-application.yaml
-    ├── configmap.yaml
-    ├── deployment.yaml
-    ├── hpa.yaml
-    ├── namespace.yaml
-    ├── rbac-role.yaml
-    ├── rbac-rolebinding.yaml
-    ├── service.yaml
-    └── serviceaccount.yaml
+│   ├── src
+│   │   ├── README.md
+│   │   ├── main
+│   │   │   ├── java
+│   │   │   │   └── com
+│   │   │   │       └── example
+│   │   │   │           └── demo
+│   │   │   │               ├── DemoApplication.java
+│   │   │   │               └── controller
+│   │   │   │                   └── HelloController.java
+│   │   │   └── resources
+│   │   │       ├── application.properties
+│   │   │       └── static
+│   │   │           └── templates
+│   │   │               └── index.html
+│   │   ├── target
+│   │   │   ├── java-cicd-demo-0.0.1-SNAPSHOT.jar
+│   │   │   └── maven-archiver
+│   │   │       └── pom.properties
+│   │   └── test
+│   │       └── java
+│   │           └── com
+│   │               └── example
+│   │                   └── demo
+│   │                       └── DemoApplicationTests.java
+│   └── target
+│       ├── classes
+│       │   ├── application.properties
+│       │   ├── com
+│       │   │   └── example
+│       │   │       └── demo
+│       │   │           ├── DemoApplication.class
+│       │   │           └── controller
+│       │   │               └── HelloController.class
+│       │   └── static
+│       │       └── templates
+│       │           └── index.html
+│       └── test-classes
+│           └── com
+│               └── example
+│                   └── demo
+│                       └── DemoApplicationTests.class
+├── k8s
+│   ├── argocd-application.yaml
+│   ├── argocd-helm-app.yaml
+│   ├── configmap.yaml
+│   ├── deployment.yaml
+│   ├── hpa.yaml
+│   ├── namespace.yaml
+│   ├── rbac-role.yaml
+│   ├── rbac-rolebinding.yaml
+│   ├── service.yaml
+│   └── serviceaccount.yaml
+└── springboot-helm-chart
+    ├── Chart.yaml
+    ├── templates
+    │   ├── _helpers.tpl
+    │   ├── deployment.yaml
+    │   ├── ingress.yaml
+    │   └── service.yaml
+    └── values.yaml
+
+35 directories, 34 files
 ```
 
 ## **Module 3 – Java Spring Boot Setup and Environment**

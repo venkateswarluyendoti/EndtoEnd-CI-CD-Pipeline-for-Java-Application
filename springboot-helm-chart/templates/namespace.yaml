@@ -1,7 +1,9 @@
+{{- if .Values.namespace.name }}
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ .Values.namespace.name }}
   labels:
-    app.kubernetes.io/name: {{ include "springboot-helm-chart.name" . }}
+    app.kubernetes.io/name: {{ include "springboot-app.name" . }}
     app.kubernetes.io/part-of: end-to-end-java-cicd
+{{- end }}
