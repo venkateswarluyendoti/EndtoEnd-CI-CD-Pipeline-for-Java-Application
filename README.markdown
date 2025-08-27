@@ -29,6 +29,9 @@ This repository provides a comprehensive guide for setting up a CI/CD pipeline f
 - [Achievements](#achievements)
 - [Future Scope](#future-scope)
 - [Summary Flow](#summary-flow)
+- [Pros and Cons](#pros-and-cons)
+- [Overcoming Limitations](#overcoming-limitations)
+- [Cleanup Instructions](#cleanup-instructions)
 
 ## Architecture Overview
 
@@ -827,6 +830,129 @@ pipeline {
 6. **Deployment**: Deploy via raw manifests (Minikube) or Helm charts (EKS) using ArgoCD.
 7. **Verification**: Check pods, services, and the access application.
 8. **Automation**: Jenkins pipeline automates all steps, with GitOps for deployment updates.
+
+## Pros and Cons
+### Pros
+
+1. **Automated CI/CD Pipeline**: Leverages Jenkins for Pipeline-as-Code with GitHub integration, enabling traceable and automated workflows.
+2. **Code Quality Assurance**: Integrates SonarQube for static code analysis, ensuring early bug detection.
+3. **Container Security**: Utilizes Trivy for vulnerability scanning of Docker images, enhancing deployment safety.
+4. **GitOps Implementation**: Employs ArgoCD for automated Kubernetes deployments, reducing manual effort by ~90%.
+5. **Deployment Flexibility**: Supports both Minikube (local development) and AWS EKS (production-grade) options.
+
+### Cons
+
+1. **Cost Implications**: AWS EKS and LoadBalancers can incur significant charges (e.g., ₹4,000/month if not managed), requiring careful resource cleanup.
+2. **Setup Complexity**: Requires manual configuration of EC2, Jenkins, and Kubernetes tools, which may challenge beginners.
+3. **Limited Observability**: Lacks monitoring tools (e.g., Prometheus, Grafana), impacting production reliability.
+4. **No Infrastructure as Code**: Absence of Terraform/CloudFormation limits reproducibility and scalability.
+5. **Basic Security**: Lacks advanced policies (e.g., OPA, Vault) or image signing (e.g., Cosign).
+6. **Manual Cleanup Required**: Users must explicitly delete clusters, instances, and resources to avoid ongoing costs.
+
+## Overcoming Limitations
+* To address the project's limitations, the following enhancements can be implemented:
+
+* **Cost Implications**: `Implement cost optimization strategies such as using spot instances for non-critical workloads, switching to NodePort or Ingress for testing instead of LoadBalancers, and setting up automated shutdown scripts for resources after use. Regularly monitor the AWS Billing Dashboard and use budget alerts to catch overspending early.`
+
+* **Setup Complexity**: `Adopt Infrastructure as Code (IaC) tools like Terraform or AWS CloudFormation to automate provisioning. Provide detailed scripts with comments and a step-by-step guide to reduce the learning curve for beginners.`
+
+* **Limited Observability**: `Integrate tools like Prometheus for metrics collection and Grafana for visualization, setting up alerts for key performance indicators to enhance real-time insights into system health.`
+
+* **No Infrastructure as Code**: `Use Terraform to define and deploy the entire infrastructure (e.g., EC2 instances, EKS clusters), enabling version control, reproducibility, and dynamic scaling.`
+
+* **Basic Security**: `Incorporate Open Policy Agent (OPA) for Kubernetes policy enforcement, HashiCorp Vault for secret management, and Cosign for signing container images to create a more robust security layer.`
+
+* **Manual Cleanup Required**: `Develop automated cleanup scripts using AWS Lambda and Boto3 to terminate unused resources on a schedule or after deployment. Include a post-deployment checklist to ensure resources are deleted.`
+
+### Cleanup Instructions
+* To avoid unnecessary costs and fully dismantle the setup (EKS cluster, EC2 instance, and associated resources), follow these steps in order. Execute commands via AWS CLI with appropriate credentials and region (ap-south-1).
+1. **Delete EKS Cluster**
+* `Remove the EKS cluster to terminate the control plane and managed node group.`
+
+* Command:
+```bash
+aws eks delete-cluster --name java-eks --region ap-south-1
+```
+**Verification**: Run `aws eks describe-cluster --name java-eks --region ap-south-1` until it returns an error (e.g., "cluster not found"). `This may take 10-15 minutes.`
+
+2. **Remove Remaining AWS Resources**
+
+* Delete any lingering resources to prevent residual charges.
+
+**LoadBalancers**:
+
+* List: `aws elbv2 describe-load-balancers`
+* Delete: `aws elbv2 delete-load-balancer --load-balancer-arn <load-balancer-arn>` (replace with ARN from list).
+
+
+**EBS Volumes**:
+
+* List: `aws ec2 describe-volumes --filters Name=status,Values=available`
+* Delete: `aws ec2 delete-volume --volume-id <volume-id>` (replace with ID from list).
+
+
+**Elastic IPs**:
+
+* List: `aws ec2 describe-addresses`
+* Release: `aws ec2 release-address --allocation-id <allocation-id>` (replace with ID from list).
+
+
+* **Alternative**: `Use the AWS Management Console (EC2 → Load Balancers, EBS, Elastic IPs) to verify and delete manually.`
+
+3. **Terminate EC2 Instance**
+
+* Terminate the EC2 instance hosting the setup to stop all associated costs.
+
+* Command:
+```bash  
+aws ec2 terminate-instances --instance-ids <instance-id>
+```
+* Replace `<instance-id>` with the instance ID (e.g., from `aws ec2 describe-instances`).
+
+
+**Verification**: Run `aws ec2 describe-instances --instance-ids <instance-id>` to confirm state is `terminated`.
+* **Alternative**: `Use the AWS Console (EC2 → Instances → Select instance → "Actions" → "Instance State" → "Terminate").`
+
+4. **Optional Local Cleanup (If Accessible)**
+
+* If SSH access to the EC2 instance is available before termination, clean up local resources:
+
+**Docker**:
+```bash
+docker stop $(docker ps -q)
+docker rm $(docker ps -a -q)
+docker rmi $(docker images -q)
+```
+**Minikube (if used)**:
+```bash
+minikube stop
+minikube delete
+rm -rf ~/.minikube
+rm -rf ~/.kube
+```
+**Jenkins Data**:
+```bash
+docker volume rm jenkins_home
+```
+
+5. **Verify Cleanup**
+**Confirm no resources remain active**:
+
+* **EC2**: `aws ec2 describe-instances`
+
+* **EKS**: `aws eks list-clusters`
+
+* **LoadBalancers**: `aws elbv2 describe-load-balancers`
+
+* **Volumes**: `aws ec2 describe-volumes`
+
+* **Expected result**: No active resources listed.
+
+! **Note**:
+
+* `Execute these steps promptly to halt further charges.`
+* `Monitor the AWS Billing Dashboard to ensure costs cease accruing.`
+* `Back up any critical configurations (e.g., Jenkins jobs) before terminating the instance if needed.`
 
 ---
 
